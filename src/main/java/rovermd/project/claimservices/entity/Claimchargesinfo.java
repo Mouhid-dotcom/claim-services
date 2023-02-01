@@ -5,8 +5,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-import rovermd.project.claimservices.service.ClaimAudittrailService;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
