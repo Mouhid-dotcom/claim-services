@@ -6,7 +6,7 @@ import rovermd.project.claimservices.dto.PatientDto;
 import rovermd.project.claimservices.dto.PatientReqDto;
 
 public interface MasterDefService {
-    InsuranceDTO getInsuranceDetailsById(long insId);
+    InsuranceDTO getInsuranceDetailsById(String insId);
     DoctorDTO getDoctorDetailsById(long insId);
 
     PatientDto getPatientDetailsById(PatientReqDto patientReqDto);

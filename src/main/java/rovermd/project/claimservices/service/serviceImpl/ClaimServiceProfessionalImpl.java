@@ -92,13 +92,13 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
             claiminfomasterProfDto_viewSingleClaim = claimToDto_ViewSingleClaim(claim);
 
             String InsuranceName = claim.getPriInsuranceNameId();
-            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(Long.parseLong(InsuranceName)).getPayerName() : null;
+            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
             claiminfomasterProfDto_viewSingleClaim.setPriInsuranceName(
                     InsuranceName
             );
 
             InsuranceName = claim.getSecondaryInsuranceId();
-            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(Long.parseLong(InsuranceName)).getPayerName() : null;
+            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
             claiminfomasterProfDto_viewSingleClaim.setSecondaryInsurance(
                     InsuranceName
             );

@@ -6,5 +6,5 @@ import java.text.ParseException;
 import java.util.List;
 
 public interface ClaimServiceSrubber {
-    List<String> scrubber(ClaiminfomasterProfDto claimDto) throws ParseException;
+    List<String> scrubber(ClaiminfomasterProfDto claimDto);
 }

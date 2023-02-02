@@ -125,7 +125,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
     private ClaimAudittrailRepository claimAudittrailRepository;
 
     @Override
-    public List<String> scrubber(ClaiminfomasterProfDto claimDto) throws ParseException {
+    public List<String> scrubber(ClaiminfomasterProfDto claimDto) {
         Instant start = Instant.now();
 
         String ReasonVisit = "";
@@ -146,6 +146,8 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         String Freq = "";
         String OrigClaim = "";
 
+        String PriFillingIndicator = "";
+        String SecFillingIndicator = "";
 
         String PriInsuranceName = "";
         String PriInsuranceNameId = "";
@@ -168,8 +170,6 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         String CLIA_number = "";
         String TaxanomySpecialty = "";
 
-        String PriFillingIndicator = "";
-        String SecFillingIndicator = "";
 
         String Payer_Address = "";
         String Payer_City = "";
@@ -183,6 +183,10 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         String PriInsuredName = "";
         String PriInsuredLastName = "";
         String PriInsuredFirstName = "";
+
+        String SecInsuredName = "";
+        String SecInsuredLastName = "";
+        String SecInsuredFirstName = "";
 
         String DOS = "";
 
@@ -257,10 +261,10 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             try {
 
                 PatientReqDto patientReqDto = new PatientReqDto();
-                patientReqDto.setPatientRegId(Long.valueOf(claimDto.getPatientRegId()));
-                patientReqDto.setVisitId(Long.valueOf(claimDto.getVisitId()));
-                patientReqDto.setPrimaryInsuranceId(Long.valueOf(claimDto.getPriInsuranceNameId()));
-                patientReqDto.setSecondaryInsuranceId(Long.valueOf(claimDto.getSecondaryInsuranceId()));
+                patientReqDto.setPatientRegId(claimDto.getPatientRegId() == null ? null : Long.valueOf(claimDto.getPatientRegId()));
+                patientReqDto.setVisitId(claimDto.getVisitId() == null ? null : Long.valueOf(claimDto.getVisitId()));
+                patientReqDto.setPrimaryInsuranceId(claimDto.getPriInsuranceNameId() == null ? null : Long.valueOf(claimDto.getPriInsuranceNameId()));
+                patientReqDto.setSecondaryInsuranceId(claimDto.getSecondaryInsuranceId() == null ? null : Long.valueOf(claimDto.getSecondaryInsuranceId()));
 
                 PatientDto patientDetailsById = masterDefService.getPatientDetailsById(patientReqDto);
                 DateTimeFormatter DOBformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -276,6 +280,13 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 State = patientDetailsById.getState();
                 ZipCode = patientDetailsById.getZipCode();
                 ClaimCreateDate = String.valueOf(ZonedDateTime.now().format(ClaimCreateDateAndDOSformatter));
+                PriInsuredFirstName = patientDetailsById.getPriInsurerFirstName();
+                PriInsuredLastName = patientDetailsById.getPriInsurerLastName();
+                PatientRelationtoPrimary = patientDetailsById.getPatientRelationtoPrimary();
+                SecInsuredFirstName = patientDetailsById.getSecInsurerFirstName();
+                SecInsuredLastName = patientDetailsById.getSecInsurerLastName();
+                PatientRelationtoSec = patientDetailsById.getPatientRelationshiptoSecondry();
+
 
             } catch (Exception e) {
                 ErrorMsgs.add(new RuntimeException(e).getMessage());
@@ -343,7 +354,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         }
 
 
-        if (isBMI_ICD(claimDto.getClaimchargesinfo().get(0).getIcda()))
+        if (isBMI_ICD(ICDA))
             ErrorMsgs.add("<p style=\"color:black;\"><b>BMI Diagnosis code </b> identified at <b>principal position </b> , the service might be <b>Denied</b> ,  Please change its position<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
 
 
@@ -460,7 +471,8 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
         InsuranceDTO PrimaryinsuranceDetailsById = null;
         try {
-            PrimaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(Long.parseLong(claimDto.getPriInsuranceNameId()));
+            PrimaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(claimDto.getPriInsuranceNameId());
+            PriFillingIndicator = PrimaryinsuranceDetailsById.getClaimIndicator_P();
         } catch (NumberFormatException e) {
             ErrorMsgs.add(new RuntimeException(e).getMessage());
             return ErrorMsgs;
@@ -468,7 +480,10 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
         InsuranceDTO SecondaryinsuranceDetailsById = null;
         try {
-            SecondaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(Long.parseLong(claimDto.getSecondaryInsuranceId()));
+            if (!isEmpty(claimDto.getSecondaryInsuranceId())) {
+                SecondaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(claimDto.getSecondaryInsuranceId());
+                SecFillingIndicator = SecondaryinsuranceDetailsById.getClaimIndicator_P();
+            }
         } catch (NumberFormatException e) {
             ErrorMsgs.add(new RuntimeException(e).getMessage());
             return ErrorMsgs;
@@ -494,7 +509,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             }
 
 
-            if (!isEmpty(PrimaryinsuranceDetailsById.getClaimIndicator_P()) && (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA"))) {
+            if (!isEmpty(PriFillingIndicator) && (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA"))) {
 
                 //                if (PatientRelationshipCode.compareTo("18") != 0) {
                 //                    ErrorMsgs.add("<p style=\"color:black;\"><b>Subscriber Relationship</b>  must be   <b>Self</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
@@ -523,7 +538,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
             }
 
-            if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA") || PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MC"))) {
+            if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA") || PriFillingIndicator.equals("MC"))) {
                 if (PrimaryinsuranceDetailsById.getPayerID().equals("DNC00")) {
                     if (!isEmpty(GrpNumber)) {
                         ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>group number</b> not allowed for <b>Medicare</b> and <b>Medicaid</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
@@ -609,7 +624,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             }
 
 
-            if (!isEmpty(PrimaryinsuranceDetailsById.getClaimIndicator_P()) && PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("BL") && !isEmpty(claimDto.getMemId())) {
+            if (!isEmpty(PriFillingIndicator) && PriFillingIndicator.equals("BL") && !isEmpty(claimDto.getMemId())) {
                 if (claimDto.getMemId().startsWith("TFC") || claimDto.getMemId().startsWith("CUX") || claimDto.getMemId().startsWith("DSN") || claimDto.getMemId().startsWith("FMW") || claimDto.getMemId().startsWith("HAR") ||
                         claimDto.getMemId().startsWith("IPW") || claimDto.getMemId().startsWith("KER") || claimDto.getMemId().startsWith("NUZ") || claimDto.getMemId().startsWith("NVC") || claimDto.getMemId().startsWith("XNE")
                         || claimDto.getMemId().startsWith("XNH") || claimDto.getMemId().startsWith("XNJ") || claimDto.getMemId().startsWith("XNN") || claimDto.getMemId().startsWith("XNV")) {
@@ -650,7 +665,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 ErrorMsgs.add("<p style=\"color:black;\">Payer <b>City</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
             }
 
-            if (PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") && !claimDto.getFreq().equals("1")) {
+            if (PriFillingIndicator.equals("MB") && !claimDto.getFreq().equals("1")) {
                 ErrorMsgs.add("<p style=\"color:black;\">Medicare always accept the claim as <b>ORIGINAL/NEW CLAIM </b>. rejected due to claim <b>frequency code</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
             }
 
@@ -685,7 +700,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
             if (!isEmpty(BillingProvider_Taxonomy)) {
                 if (Taxonomy_for_InitialTreatment_List.contains(BillingProvider_Taxonomy)) {
-                    if (PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA")) {
+                    if (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA")) {
                         if (isEmpty(String.valueOf(claimDto.getClaimadditionalinfo().getInitialTreatDateAddInfo()))) {
                             ErrorMsgs.add("<p style=\"color:black;\"><b>Initial Treatment Date</b> is  <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                         } else if (isInValidDate(String.valueOf(claimDto.getClaimadditionalinfo().getInitialTreatDateAddInfo()), DOS)) {
@@ -987,7 +1002,8 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
 
-                Units = String.valueOf(claimDto.getClaimchargesinfo().get(i).getUnits());//ChargesInput[i][11].contains(".") ? ChargesInput[i][11].substring(0, ChargesInput[i][11].indexOf(".")) : ChargesInput[i][11];
+                Units = String.valueOf(claimDto.getClaimchargesinfo().get(i).getUnits());
+                Units = Units.contains(".") ? Units.substring(0, Units.indexOf(".")) : Units;
                 Amount = String.valueOf(claimDto.getClaimchargesinfo().get(i).getAmount());//ChargesInput[i][12];
                 ProcedureCode = claimDto.getClaimchargesinfo().get(i).getHCPCSProcedure();//ChargesInput[i][2];
                 mod1 = claimDto.getClaimchargesinfo().get(i).getMod1();//ChargesInput[i][5];
@@ -1596,17 +1612,17 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
 
-                if (espdtprocedureRepository.validateEPSDT_ProceduresCodes(ProcedureCode) == 1 && (PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MC") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MC"))
+                if (espdtprocedureRepository.validateEPSDT_ProceduresCodes(ProcedureCode) == 1 && (PriFillingIndicator.equals("MC") || SecFillingIndicator.equals("MC"))
                         && (getAge(LocalDate.parse(_DOB)) < 21) && modifier.contains("EP")) {
                     ErrorMsgs.add("<p style=\"color:black;\">eligible medicaid recipient for <b>EPSDT</b> services  are less than <b>21 year</b> of age. patient  age is not appropriate to bill this service please remove modifier <b>EP</b>.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                 }
 
-                if (espdtprocedureRepository.validateEPSDT_ProceduresCodes(ProcedureCode) == 1 && (!PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MC") || !SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MC"))) {
+                if (espdtprocedureRepository.validateEPSDT_ProceduresCodes(ProcedureCode) == 1 && (!PriFillingIndicator.equals("MC") || !SecFillingIndicator.equals("MC"))) {
                     ErrorMsgs.add("<p style=\"color:black;\"> <b>EPSDT</b> Code is used it may be used on <b>MEDICAID</b> claims only <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                 }
 
 
-                if ((modifier.contains("GV") || modifier.contains("GW")) && (!PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || !SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MB"))) {
+                if ((modifier.contains("GV") || modifier.contains("GW")) && (!PriFillingIndicator.equals("MB") || !SecFillingIndicator.equals("MB"))) {
                     ErrorMsgs.add("<p style=\"color:black;\">modifier <b> GW/GV </b> indicates hospice services, please file claim to <b>medicare</b> or remove the modifier<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                 }
 
@@ -1635,9 +1651,9 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     ErrorMsgs.add("<p style=\"color:black;\"><b>Modifier [ 24 , 25 ]</b> is <b>Not</b> allowed with  procedure <b>[" + ProcedureCode + "]</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                 }
 
-                if ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MA")) ||
-                        ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MB"))) ||
-                        ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("16") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("16")))) {
+                if ((PriFillingIndicator.equals("MA") || SecFillingIndicator.equals("MA")) ||
+                        ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB"))) ||
+                        ((PriFillingIndicator.equals("16") || SecFillingIndicator.equals("16")))) {
 
                     if (cliaRepository.validateCLIACodes(ProcedureCode) == 1 && !modifier.contains("QW")) {
                         ErrorMsgs.add("<p style=\"color:black;\">CLIA required procedure <b>[" + ProcedureCode + "]</b> found, Procedure may require <b>QW</b> modifier  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
@@ -1745,14 +1761,14 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + ProcedureCode + "]</b>  is not <b>billable</b> with wellness ICDs <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                 }
 
-                if ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("CI") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("CI"))) {
+                if ((PriFillingIndicator.equals("CI") || SecFillingIndicator.equals("CI"))) {
                     if (cPTRepository.find_CPT_between_Ranges("99381", "99397", ProcedureCode) > 0 && iCDRepository.find_ICD_between_Ranges(addChar("Z0000", '.', 3), addChar("Z139", '.', 3), ICDA) == 0) {
                         ErrorMsgs.add("<p style=\"color:black;\"><b>ICD A</b> must be <b>Well visit</b> diagnose i.e  <b>Z00 - Z13.9</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                     }
 
                 }
 
-                if ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MB"))) {
+                if ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB"))) {
                     if (WELL_VISIT_CPTs.contains(ProcedureCode) && iCDRepository.find_ICD_between_Ranges(addChar("Z0000", '.', 3), addChar("Z139", '.', 3), ICDA) == 0) {
                         ErrorMsgs.add("<p style=\"color:black;\"><b>ICD A</b> must be <b>Well visit</b> diagnose i.e  <b>Z00 - Z13.9</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                     }
@@ -1777,8 +1793,8 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 //                    ErrorMsgs.add("<p style=\"color:black;\"><b>Well visit Vaccine</b> should be billed with <b> Z23</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                 //                }
 
-                if ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MA"))
-                        || ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MB")))) {
+                if ((PriFillingIndicator.equals("MA") || SecFillingIndicator.equals("MA"))
+                        || ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB")))) {
                     if (icodeRepository.validateI_Codes(ProcedureCode) == 1) {
                         ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + ProcedureCode + "]</b>  is  <b>I HCPCS Code</b> which is not payable by <b>Medicare</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                     }
@@ -1850,7 +1866,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 //                }
 
                 //                //system.out.println("PriFillingIndicator ->> " + PriFillingIndicator);
-                if (PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA") || PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB")) {
+                if (PriFillingIndicator.equals("MA") || PriFillingIndicator.equals("MB")) {
                     if (ProcedureCodeModifier.contains(mod1) || ProcedureCodeModifier.contains(mod2) || ProcedureCodeModifier.contains(mod3) || ProcedureCodeModifier.contains(mod4)) {
                         ErrorMsgs.add("<p style=\"color:black;\"><b>Procedure Code Modifier</b> for Services rendered is <b>InValid</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
                     }
@@ -1867,7 +1883,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 Charge_ProcedureCodes.add(ProcedureCode);
             }
 
-            if ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MA")) || ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MB")))) {
+            if ((PriFillingIndicator.equals("MA") || SecFillingIndicator.equals("MA")) || ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB")))) {
                 for (String CPT :
                         Charge_ProcedureCodes) {
                     if (CPT.startsWith("S")) {
@@ -2073,9 +2089,9 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
             }
 
-            if ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MA") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MA"))
-                    || ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("MB") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("MB")))
-                    || ((PrimaryinsuranceDetailsById.getClaimIndicator_P().equals("16") || SecondaryinsuranceDetailsById.getClaimIndicator_P().equals("16")))
+            if ((PriFillingIndicator.equals("MA") || SecFillingIndicator.equals("MA"))
+                    || ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB")))
+                    || ((PriFillingIndicator.equals("16") || SecFillingIndicator.equals("16")))
                     || getAge(LocalDate.parse(_DOB)) >= 65) {
                 for (String ICD :
                         ICDs) {
@@ -2176,10 +2192,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 System.out.println("1");
             }
 
+            ErrorMsgs.add(String.valueOf(ErrorMsgs.size()));
 
         } catch (NumberFormatException | ParseException e) {
-            ErrorMsgs.add(new RuntimeException(e).getMessage());
-            return ErrorMsgs;
+//            ErrorMsgs.add(new RuntimeException(e).getMessage());
+//            return ErrorMsgs;
+            throw new RuntimeException(e);
         }
 
 
@@ -2376,7 +2394,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
     }
 
     static boolean isEmpty(final String str) {
-        return (str == null) || (str.length() <= 0);
+        return (str == null) || str.equals("null") || (str.length() <= 0);
     }
 
     static boolean isEmpty(final Object str) {

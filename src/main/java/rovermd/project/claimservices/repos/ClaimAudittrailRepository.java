@@ -11,7 +11,8 @@ import java.util.List;
 @Repository
 public interface ClaimAudittrailRepository extends JpaRepository<ClaimAudittrail, Integer> {
     List<ClaimAudittrail> findByClaimNo(String claimNumber);
-    @Query("SELECT IFNULL(REPLACE(ruleHTML,'&amp;','&'),'') FROM ClaimAudittrail WHERE claimNo=:claimNumber AND action='REMOVED'")
+//    @Query("SELECT IFNULL(REPLACE(a.ruleHTML,'&amp;','&'),'') FROM ClaimAudittrail a WHERE a.claimNo=:claimNumber AND a.action='REMOVED'")
+    @Query("SELECT a.ruleHTML FROM ClaimAudittrail a WHERE a.claimNo=:claimNumber AND a.action='REMOVED'")
     List<String> findByClaimNoAAndAction(@Param("claimNumber") String claimNumber);
 
 }

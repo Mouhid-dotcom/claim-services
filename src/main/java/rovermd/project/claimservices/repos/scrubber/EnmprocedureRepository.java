@@ -7,6 +7,6 @@ import rovermd.project.claimservices.entity.scrubber.Enmprocedure;
 
 public interface EnmprocedureRepository extends JpaRepository<Enmprocedure, Long> {
 
-    @Query("SELECT Count(*) from Enmprocedure where CPT =:code")
+    @Query("SELECT Count(*) from Enmprocedure a where a.cpt =:code")
     Integer validateE_N_M_ProceduresCodes(@Param("code") String code);
 }

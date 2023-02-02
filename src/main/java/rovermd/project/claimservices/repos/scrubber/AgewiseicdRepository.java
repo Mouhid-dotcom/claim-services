@@ -7,9 +7,9 @@ import rovermd.project.claimservices.entity.scrubber.Agewiseicd;
 
 public interface AgewiseicdRepository extends JpaRepository<Agewiseicd, Integer> {
 
-    @Query("SELECT Count(*) FROM Agewiseicd WHERE ICD=:code")
+    @Query("SELECT Count(*) FROM Agewiseicd a WHERE a.icd=:code")
     Integer validateAgeICDs(@Param("code") String code);
 
-    @Query("SELECT Count(*) FROM Agewiseicd WHERE ICD=:code AND upperLimit>=:age AND lowerLimit<=:age ")
+    @Query("SELECT Count(*) FROM Agewiseicd a WHERE a.icd=:code AND a.upperLimit>=:age AND a.lowerLimit<=:age ")
     Integer validateAgeICDswithUpperAndLowerLimit(@Param("code") String code,@Param("age") int age);
 }

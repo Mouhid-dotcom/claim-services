@@ -86,13 +86,13 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
             claiminfomasterInstDto_viewSingleClaim = claimToDto_ViewSingleClaim(claim);
 
             String InsuranceName = claim.getPriInsuranceNameId();
-            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(Long.parseLong(InsuranceName)).getPayerName() : null;
+            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
             claiminfomasterInstDto_viewSingleClaim.setPriInsuranceName(
                     InsuranceName
             );
 
             InsuranceName = claim.getSecondaryInsuranceId();
-            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(Long.parseLong(InsuranceName)).getPayerName() : null;
+            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
             claiminfomasterInstDto_viewSingleClaim.setSecondaryInsurance(
                     InsuranceName
             );

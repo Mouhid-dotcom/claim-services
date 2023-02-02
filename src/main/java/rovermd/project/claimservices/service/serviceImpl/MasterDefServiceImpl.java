@@ -22,13 +22,13 @@ public class MasterDefServiceImpl implements MasterDefService {
 
 
     @Override
-    public InsuranceDTO getInsuranceDetailsById(long insId) {
+    public InsuranceDTO getInsuranceDetailsById(String insId) {
 
         InsuranceDTO ins = webClient.get()
                 .uri("professionalpayer/find/" + insId)
                 .header("X-TenantID", "8")//String.valueOf(TenantContext.getCurrentTenant()))
                 .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Insurance","InsuranceID", insId)))
+                .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Insurance","InsuranceID", insId == null ? null : Long.valueOf(insId))))
                 .bodyToMono(InsuranceDTO.class).block();
 
         System.out.println(ins.getPayerName());
@@ -48,7 +48,7 @@ public class MasterDefServiceImpl implements MasterDefService {
 
     public PatientDto getPatientDetailsById(PatientReqDto patreqDto) {
         return webClient2.post()
-                .header("X-TenantID", "8")//String.valueOf(TenantContext.getCurrentTenant()))
+                .header("X-TenantID", "6")//String.valueOf(TenantContext.getCurrentTenant()))
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromObject(patreqDto))
                 .retrieve()
