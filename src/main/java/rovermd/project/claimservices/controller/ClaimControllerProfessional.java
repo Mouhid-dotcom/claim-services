@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rovermd.project.claimservices.dto.ClaimInfoMaster_List;
+import rovermd.project.claimservices.dto.ScrubberRulesDto;
+import rovermd.project.claimservices.dto.SuccessMsg;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
@@ -23,9 +25,9 @@ public class ClaimControllerProfessional {
     @Autowired
     private ClaimServiceSrubber claimServiceSrubber;
     @PostMapping
-    public ResponseEntity<ClaiminfomasterProfDto> createClaim(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
-        ClaiminfomasterProfDto claim = claimService.createClaim(claimDTO, request.getRemoteAddr());
-        return new ResponseEntity<>(claim, HttpStatus.CREATED);
+    public ResponseEntity<SuccessMsg> createClaim(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
+        SuccessMsg successMsg = claimService.createClaim(claimDTO, request.getRemoteAddr());
+        return new ResponseEntity<>(successMsg, HttpStatus.CREATED);
     }
 
     @PutMapping
@@ -44,11 +46,11 @@ public class ClaimControllerProfessional {
         return ResponseEntity.ok(claimService.copyClaim(claimId));
     }
 
-    @PostMapping("/scrubber")
-    public ResponseEntity<List<String>> scrubber(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
-        List<String> res = claimServiceSrubber.scrubber(claimDTO);
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
+//    @PostMapping("/scrubber")
+//    public ResponseEntity<List<ScrubberRulesDto>> scrubber(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
+//        List<ScrubberRulesDto> res = claimServiceSrubber.scrubber(claimDTO);
+//        return new ResponseEntity<>(res, HttpStatus.OK);
+//    }
 
 
 }

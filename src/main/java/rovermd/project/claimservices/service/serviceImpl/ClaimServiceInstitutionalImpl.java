@@ -15,7 +15,7 @@ import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.*;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceInstitutional;
-import rovermd.project.claimservices.service.MasterDefService;
+import rovermd.project.claimservices.service.ExternalService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +50,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
     private ClaimAudittrailService claimAudittrailService;
 
     @Autowired
-    private MasterDefService masterDefService;
+    private ExternalService masterDefService;
 
 
     @Override
@@ -481,140 +481,150 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
     @Transactional
     @Override
     public ClaiminfomasterInstDto createClaim(ClaiminfomasterInstDto claimDTO, String remoteAddr) {
-        List<ClaimchargesinfoDto> newClaimChargesinfoDTO = claimDTO.getClaimchargesinfo();
-        Claiminfomaster claim = dtoToClaim(claimDTO);
-        claim.setCreatedIP(remoteAddr);
+        Claiminfomaster save = null;
+        try {
+            List<ClaimchargesinfoDto> newClaimChargesinfoDTO = claimDTO.getClaimchargesinfo();
+            Claiminfomaster claim = dtoToClaim(claimDTO);
+            claim.setCreatedIP(remoteAddr);
 
-        claim.getClaimadditionalinfo().setClaiminfomaster(claim);
+            String claimNumber = claimRepo.getNewClaimNumber();
+            claim.setClaimNumber("CI-" + claimNumber);
 
-        if (claim.getClaiminformationcode() != null) {
-            claim.getClaiminformationcode().setClaiminfomaster(claim);
+
+            claim.getClaimadditionalinfo().setClaiminfomaster(claim);
+
+            if (claim.getClaiminformationcode() != null) {
+                claim.getClaiminformationcode().setClaiminfomaster(claim);
+            }
+
+            List<Claimchargesinfo> claimClaimchargesinfo = claim.getClaimchargesinfo();
+
+            IntStream.range(0, claimClaimchargesinfo.size())
+                    .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
+                    .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
+
+            IntStream.range(0, claimClaimchargesinfo.size())
+                    .forEach(i -> claim.getClaimchargesinfo().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfocodeconditioncode().size())
+                    .forEach(i -> claim.getClaiminfocodeconditioncode().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfocodevaluecode().size())
+                    .forEach(i -> claim.getClaiminfocodevaluecode().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfooccurance().size())
+                    .forEach(i -> claim.getClaiminfooccurance().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfocodeoccspan().size())
+                    .forEach(i -> claim.getClaiminfocodeoccspan().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfocodeothprocedure().size())
+                    .forEach(i -> claim.getClaiminfocodeothprocedure().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfocodeothdiag().size())
+                    .forEach(i -> claim.getClaiminfocodeothdiag().get(i).setClaiminfomaster(claim));
+
+            IntStream.range(0, claim.getClaiminfocodeextcauseinj().size())
+                    .forEach(i -> claim.getClaiminfocodeextcauseinj().get(i).setClaiminfomaster(claim));
+
+
+            for (ClaimchargesinfoDto claimchargesinfoDto : newClaimChargesinfoDTO) {
+
+                compareCPT(null,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        claim
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        isEmpty(claimchargesinfoDto.getChargesStatus()) ? null : claimStatusRepository.findById(Long.valueOf(claimchargesinfoDto.getChargesStatus())).get().getDescname(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "status"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getMod1(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "MOD 1"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getMod2(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "MOD 2"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getMod3(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "MOD 3"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getMod4(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "MOD 4"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getAmount() == null ? null : String.valueOf(claimchargesinfoDto.getAmount()),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "Amount"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getUnitPrice() == null ? null : String.valueOf(claimchargesinfoDto.getUnitPrice()),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "Units Price"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getUnits() == null ? null : String.valueOf(claimchargesinfoDto.getUnits()),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "Units"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getServiceDate(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "Service date"
+                );
+
+                compareClaimChargesInfoAttr(
+                        null,
+                        claimchargesinfoDto.getRevCode(),
+                        claim,
+                        claimchargesinfoDto.getHCPCSProcedure(),
+                        "Revenue code"
+                );
+
+            }
+
+            save = claimRepo.save(claim);
+            insertClaimAuditTrails(claim,
+                    "CLAIM SAVED",
+                    "CREATED");
+        } catch (NumberFormatException e) {
+            throw new RuntimeException(e);
         }
 
-        List<Claimchargesinfo> claimClaimchargesinfo = claim.getClaimchargesinfo();
-
-        IntStream.range(0, claimClaimchargesinfo.size())
-                .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
-                .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
-
-        IntStream.range(0, claimClaimchargesinfo.size())
-                .forEach(i -> claim.getClaimchargesinfo().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfocodeconditioncode().size())
-                .forEach(i -> claim.getClaiminfocodeconditioncode().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfocodevaluecode().size())
-                .forEach(i -> claim.getClaiminfocodevaluecode().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfooccurance().size())
-                .forEach(i -> claim.getClaiminfooccurance().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfocodeoccspan().size())
-                .forEach(i -> claim.getClaiminfocodeoccspan().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfocodeothprocedure().size())
-                .forEach(i -> claim.getClaiminfocodeothprocedure().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfocodeothdiag().size())
-                .forEach(i -> claim.getClaiminfocodeothdiag().get(i).setClaiminfomaster(claim));
-
-        IntStream.range(0, claim.getClaiminfocodeextcauseinj().size())
-                .forEach(i -> claim.getClaiminfocodeextcauseinj().get(i).setClaiminfomaster(claim));
-
-
-        for (ClaimchargesinfoDto claimchargesinfoDto : newClaimChargesinfoDTO) {
-
-            compareCPT(null,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    claim
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    isEmpty(claimchargesinfoDto.getChargesStatus()) ? null : claimStatusRepository.findById(Long.valueOf(claimchargesinfoDto.getChargesStatus())).get().getDescname(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "status"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getMod1(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "MOD 1"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getMod2(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "MOD 2"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getMod3(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "MOD 3"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getMod4(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "MOD 4"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getAmount() == null ? null : String.valueOf(claimchargesinfoDto.getAmount()),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "Amount"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getUnitPrice() == null ? null : String.valueOf(claimchargesinfoDto.getUnitPrice()),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "Units Price"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getUnits() == null ? null : String.valueOf(claimchargesinfoDto.getUnits()),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "Units"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getServiceDate(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "Service date"
-            );
-
-            compareClaimChargesInfoAttr(
-                    null,
-                    claimchargesinfoDto.getRevCode(),
-                    claim,
-                    claimchargesinfoDto.getHCPCSProcedure(),
-                    "Revenue code"
-            );
-
-        }
-
-        Claiminfomaster save = claimRepo.save(claim);
-        insertClaimAuditTrails(claim,
-                "CLAIM SAVED",
-                "CREATED");
 
 
         return claimToDto(save);

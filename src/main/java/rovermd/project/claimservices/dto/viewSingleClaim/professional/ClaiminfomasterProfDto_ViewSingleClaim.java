@@ -2,6 +2,7 @@ package rovermd.project.claimservices.dto.viewSingleClaim.professional;
 
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import rovermd.project.claimservices.dto.ScrubberRulesDto;
 import rovermd.project.claimservices.entity.Claiminfomaster;
 
 import java.util.List;
@@ -80,5 +81,6 @@ public class ClaiminfomasterProfDto_ViewSingleClaim {
     private ClaimadditionalinfoDto_ViewSingleClaim claimadditionalinfo;
     private ClaimambulancecodeDto_ViewSingleClaim claimambulancecode;
 
+    private List<ScrubberRulesDto> scrubber;
 
 }

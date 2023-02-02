@@ -2,17 +2,16 @@ package rovermd.project.claimservices.service.serviceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import rovermd.project.claimservices.dto.DoctorDTO;
-import rovermd.project.claimservices.dto.InsuranceDTO;
-import rovermd.project.claimservices.dto.PatientDto;
-import rovermd.project.claimservices.dto.PatientReqDto;
-import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
+import rovermd.project.claimservices.dto.*;
+import rovermd.project.claimservices.entity.ClaimAudittrail;
+import rovermd.project.claimservices.entity.Claiminfomaster;
 import rovermd.project.claimservices.repos.CPTRepository;
 import rovermd.project.claimservices.repos.ClaimAudittrailRepository;
 import rovermd.project.claimservices.repos.ICDRepository;
 import rovermd.project.claimservices.repos.scrubber.*;
+import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
-import rovermd.project.claimservices.service.MasterDefService;
+import rovermd.project.claimservices.service.ExternalService;
 
 import java.sql.ResultSet;
 import java.text.ParseException;
@@ -120,13 +119,18 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
     private CciModMustRepository cciModMustRepository;
 
     @Autowired
-    private MasterDefService masterDefService;
+    private ExternalService masterDefService;
     @Autowired
     private ClaimAudittrailRepository claimAudittrailRepository;
 
+    @Autowired
+    private ClaimAudittrailService claimAudittrailService;
+
     @Override
-    public List<String> scrubber(ClaiminfomasterProfDto claimDto) {
+    public List<ScrubberRulesDto> scrubber(Claiminfomaster claim) {
         Instant start = Instant.now();
+        List<ScrubberRulesDto> rulesList = new ArrayList<>();
+
 
         String ReasonVisit = "";
         String PatientFirstName = "";
@@ -229,18 +233,18 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         String OperatingProviderNPI = "";
         String OperatingProvider_Taxonomy = "";
 
-        String ICDA = claimDto.getClaimchargesinfo().get(0).getIcda();
-        String ICDB = claimDto.getClaimchargesinfo().get(0).getIcdb();
-        String ICDC = claimDto.getClaimchargesinfo().get(0).getIcdc();
-        String ICDD = claimDto.getClaimchargesinfo().get(0).getIcdd();
-        String ICDE = claimDto.getClaimchargesinfo().get(0).getIcde();
-        String ICDF = claimDto.getClaimchargesinfo().get(0).getIcdf();
-        String ICDG = claimDto.getClaimchargesinfo().get(0).getIcdg();
-        String ICDH = claimDto.getClaimchargesinfo().get(0).getIcdh();
-        String ICDI = claimDto.getClaimchargesinfo().get(0).getIcdi();
-        String ICDJ = claimDto.getClaimchargesinfo().get(0).getIcdj();
-        String ICDK = claimDto.getClaimchargesinfo().get(0).getIcdk();
-        String ICDL = claimDto.getClaimchargesinfo().get(0).getIcdl();
+        String ICDA = claim.getClaimchargesinfo().get(0).getIcda();
+        String ICDB = claim.getClaimchargesinfo().get(0).getIcdb();
+        String ICDC = claim.getClaimchargesinfo().get(0).getIcdc();
+        String ICDD = claim.getClaimchargesinfo().get(0).getIcdd();
+        String ICDE = claim.getClaimchargesinfo().get(0).getIcde();
+        String ICDF = claim.getClaimchargesinfo().get(0).getIcdf();
+        String ICDG = claim.getClaimchargesinfo().get(0).getIcdg();
+        String ICDH = claim.getClaimchargesinfo().get(0).getIcdh();
+        String ICDI = claim.getClaimchargesinfo().get(0).getIcdi();
+        String ICDJ = claim.getClaimchargesinfo().get(0).getIcdj();
+        String ICDK = claim.getClaimchargesinfo().get(0).getIcdk();
+        String ICDL = claim.getClaimchargesinfo().get(0).getIcdl();
 
         String[] Taxonomy = {"213ES0131X", "213EG0000X", "213EP1101X", "213EP0504X", "213ER0200X", "213ES0000X"};
         List<String> TaxonomyList = Arrays.asList(Taxonomy);
@@ -253,18 +257,18 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
 
         if (
-                (!isEmpty(claimDto.getPatientRegId())
-                        && !isEmpty(claimDto.getVisitId())
-                        && !isEmpty(claimDto.getPriInsuranceNameId()))
-                        || !isEmpty(claimDto.getSecondaryInsuranceId())
+                (!isEmpty(claim.getPatientRegId())
+                        && !isEmpty(claim.getVisitId())
+                        && !isEmpty(claim.getPriInsuranceNameId()))
+                        || !isEmpty(claim.getSecondaryInsuranceId())
         ) {
             try {
 
                 PatientReqDto patientReqDto = new PatientReqDto();
-                patientReqDto.setPatientRegId(claimDto.getPatientRegId() == null ? null : Long.valueOf(claimDto.getPatientRegId()));
-                patientReqDto.setVisitId(claimDto.getVisitId() == null ? null : Long.valueOf(claimDto.getVisitId()));
-                patientReqDto.setPrimaryInsuranceId(claimDto.getPriInsuranceNameId() == null ? null : Long.valueOf(claimDto.getPriInsuranceNameId()));
-                patientReqDto.setSecondaryInsuranceId(claimDto.getSecondaryInsuranceId() == null ? null : Long.valueOf(claimDto.getSecondaryInsuranceId()));
+                patientReqDto.setPatientRegId(claim.getPatientRegId() == null ? null : Long.valueOf(claim.getPatientRegId()));
+                patientReqDto.setVisitId(claim.getVisitId() == null ? null : Long.valueOf(claim.getVisitId()));
+                patientReqDto.setPrimaryInsuranceId(claim.getPriInsuranceNameId() == null ? null : Long.valueOf(claim.getPriInsuranceNameId()));
+                patientReqDto.setSecondaryInsuranceId(claim.getSecondaryInsuranceId() == null ? null : Long.valueOf(claim.getSecondaryInsuranceId()));
 
                 PatientDto patientDetailsById = masterDefService.getPatientDetailsById(patientReqDto);
                 DateTimeFormatter DOBformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -280,8 +284,8 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 State = patientDetailsById.getState();
                 ZipCode = patientDetailsById.getZipCode();
                 ClaimCreateDate = String.valueOf(ZonedDateTime.now().format(ClaimCreateDateAndDOSformatter));
-                PriInsuredFirstName = patientDetailsById.getPriInsurerFirstName();
-                PriInsuredLastName = patientDetailsById.getPriInsurerLastName();
+//                PriInsuredFirstName = patientDetailsById.getPriInsurerFirstName();
+//                PriInsuredLastName = patientDetailsById.getPriInsurerLastName();
                 PatientRelationtoPrimary = patientDetailsById.getPatientRelationtoPrimary();
                 SecInsuredFirstName = patientDetailsById.getSecInsurerFirstName();
                 SecInsuredLastName = patientDetailsById.getSecInsurerLastName();
@@ -289,73 +293,68 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
 
             } catch (Exception e) {
-                ErrorMsgs.add(new RuntimeException(e).getMessage());
-                return ErrorMsgs;
+                ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
             }
         }
 
 
-        if (!isEmpty(claimDto.getRenderingProvider())) {
+        if (!isEmpty(claim.getRenderingProvider())) {
             try {
-                RenderingProviderDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claimDto.getRenderingProvider()));
+                RenderingProviderDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claim.getRenderingProvider()));
 
                 RenderingProvidersLastName = RenderingProviderDetailsById.getDoctorsLastName();
                 RenderingProvidersFirstName = RenderingProviderDetailsById.getDoctorsFirstName();
                 RenderingProvidersNPI = RenderingProviderDetailsById.getNpi();
                 RenderingProviders_Taxonomy = RenderingProviderDetailsById.getTaxonomySpecialty();
             } catch (NumberFormatException e) {
-                ErrorMsgs.add(new RuntimeException(e).getMessage());
-                return ErrorMsgs;
+                ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
             }
 
         }
 
-        if (!isEmpty(claimDto.getBillingProviders())) {
+        if (!isEmpty(claim.getBillingProviders())) {
             try {
-                BillingProvidersDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claimDto.getBillingProviders()));
+                BillingProvidersDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claim.getBillingProviders()));
 
                 BillingProviderLastName = BillingProvidersDetailsById.getDoctorsLastName();
                 BillingProviderFirstName = BillingProvidersDetailsById.getDoctorsFirstName();
                 BillingProviderNPI = BillingProvidersDetailsById.getNpi();
                 BillingProvider_Taxonomy = BillingProvidersDetailsById.getTaxonomySpecialty();
             } catch (NumberFormatException e) {
-                ErrorMsgs.add(new RuntimeException(e).getMessage());
-                return ErrorMsgs;
+                ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
             }
 
         }
 
-        if (!isEmpty(claimDto.getReferringProvider())) {
+        if (!isEmpty(claim.getReferringProvider())) {
             try {
-                ReferringProviderDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claimDto.getReferringProvider()));
+                ReferringProviderDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claim.getReferringProvider()));
 
                 ReferringProviderLastName = ReferringProviderDetailsById.getDoctorsLastName();
                 ReferringProviderFirstName = ReferringProviderDetailsById.getDoctorsFirstName();
                 ReferringProviderNPI = ReferringProviderDetailsById.getNpi();
                 ReferringProvider_Taxonomy = ReferringProviderDetailsById.getTaxonomySpecialty();
             } catch (NumberFormatException e) {
-                ErrorMsgs.add(new RuntimeException(e).getMessage());
-                return ErrorMsgs;
+                ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
             }
         }
 
-        if (!isEmpty(claimDto.getOrderingProvider())) {
+        if (!isEmpty(claim.getOrderingProvider())) {
             try {
-                OrderingProviderDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claimDto.getOrderingProvider()));
+                OrderingProviderDetailsById = masterDefService.getDoctorDetailsById(Long.parseLong(claim.getOrderingProvider()));
 
                 OrderingProvidersLastName = OrderingProviderDetailsById.getDoctorsLastName();
                 OrderingProvidersFirstName = OrderingProviderDetailsById.getDoctorsFirstName();
                 OrderingProvidersNPI = OrderingProviderDetailsById.getNpi();
                 OrderingProviders_Taxonomy = OrderingProviderDetailsById.getTaxonomySpecialty();
             } catch (NumberFormatException e) {
-                ErrorMsgs.add(new RuntimeException(e).getMessage());
-                return ErrorMsgs;
+                ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
             }
         }
 
 
         if (isBMI_ICD(ICDA))
-            ErrorMsgs.add("<p style=\"color:black;\"><b>BMI Diagnosis code </b> identified at <b>principal position </b> , the service might be <b>Denied</b> ,  Please change its position<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("<b>BMI Diagnosis code </b> identified at <b>principal position </b> , the service might be <b>Denied</b> ,  Please change its position\n");
 
 
         if (!isEmpty(ICDA)) ICDs.add(ICDA);
@@ -373,20 +372,22 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
         if (PatientRelationtoPrimary.compareTo("Self") != 0) {
             if (isEmpty(PriInsuredFirstName) && isEmpty(PriInsuredLastName)) {
-                ErrorMsgs.add("<p style=\"color:black;\"><b>Primary Insurer Name</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("<b>Primary Insurer Name</b> is <b>Missing</b>\n");
             }
         }
 
-        if (isInValidDate(DOB, DOS)) {
-            ErrorMsgs.add("<p style=\"color:black;\">DOS cannot be prior to the DOB correction is required <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+        if (!isEmpty(DOB) && !isEmpty(DOS)) {
+            if ( isInValidDate(DOB, DOS)) {
+                ErrorMsgs.add("DOS cannot be prior to the DOB correction is required \n");
+            }
         }
 
         if (!isEmpty(BillingProvider_Taxonomy)) {
             if (isInValidTaxonomy(BillingProvider_Taxonomy)) {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Taxonomy Code</b> is  <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Billing Provider <b>Taxonomy Code</b> is  <b>InValid</b>\n");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Taxonomy Code</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>Taxonomy Code</b> is <b>Missing</b>\n");
         }
 
         final String NPI_REGEX = "[0-9]{10}";
@@ -394,39 +395,39 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         if (!isEmpty(BillingProviderNPI)) {
             if (BillingProviderNPI.matches(NPI_REGEX)) {
                 if (!isValid(BillingProviderNPI))
-                    ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                            "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                    ErrorMsgs.add("Billing Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                            "* Length of the NPI should be 10 digits\"> ");
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                        "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                ErrorMsgs.add("Billing Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                        "* Length of the NPI should be 10 digits\"> ");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>NPI</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>NPI</b> is <b>Missing</b>\n");
         }
 
         final String Name_REGEX = "^([A-Z0-9 ]{2,100})$";
         if (!isEmpty(BillingProviderLastName)) {
             if (!BillingProviderLastName.matches(Name_REGEX)) {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>LastName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Billing Provider <b>LastName</b> is <b>InValid</b>\n");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>LastName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>LastName</b> is <b>Missing</b>\n");
         }
 
         if (!isEmpty(BillingProviderFirstName)) {
             if (!BillingProviderFirstName.matches(Name_REGEX)) {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>FirstName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Billing Provider <b>FirstName</b> is <b>InValid</b>\n");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>FirstName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>FirstName</b> is <b>Missing</b>\n");
         }
 
         if (!isEmpty(ClientAddress)) {
             if (isInValidAddress(ClientAddress)) {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Address/b> Cannot be <b>PO BOX</b> Address. Only Physical Address Is <b>Allowed</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Billing Provider <b>Address/b> Cannot be <b>PO BOX</b> Address. Only Physical Address Is <b>Allowed</b>\n");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Address</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>Address</b> is <b>Missing</b>\n");
         }
 
 
@@ -434,24 +435,24 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             if (ClientZipCode.contains("-")) {
                 String[] ClientZipCodes = ClientZipCode.split("-");
                 if (isInValidZipCode(ClientState, ClientZipCodes[0])) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>ZipCode</b> does not match with <b>State</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Billing Provider <b>ZipCode</b> does not match with <b>State</b>\n");
                 }
             } else {
                 if (isInValidZipCode(ClientState, ClientZipCode)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>ZipCode</b> does not match with <b>State</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Billing Provider <b>ZipCode</b> does not match with <b>State</b>\n");
                 }
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>ZipCode</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>ZipCode</b> is <b>Missing</b>\n");
         }
 
         final String CITY_REGEX = "^([0-9, A-Z, a-z]{2,30})$";
         if (!isEmpty(ClientCity)) {
             if (!ClientCity.matches(CITY_REGEX)) {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>City</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Billing Provider <b>City</b> is <b>InValid</b>\n");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>City</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>City</b> is <b>Missing</b>\n");
         }
 
 
@@ -460,65 +461,64 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         if (!isEmpty(ClientTaxID)) {
             if (ClientTaxID.matches(BillingProvider_TaxID_LENGTH_REGEX)) {
                 if (ClientTaxID.matches(BillingProvider_TaxID_SEQUENCE_REGEX)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Tax ID</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Billing Provider <b>Tax ID</b> is <b>InValid</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Tax ID</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Billing Provider <b>Tax ID</b> is <b>InValid</b>\n");
             }
         } else {
-            ErrorMsgs.add("<p style=\"color:black;\">Billing Provider <b>Tax ID</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            ErrorMsgs.add("Billing Provider <b>Tax ID</b> is <b>Missing</b>\n");
         }
 
         InsuranceDTO PrimaryinsuranceDetailsById = null;
         try {
-            PrimaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(claimDto.getPriInsuranceNameId());
+            PrimaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(claim.getPriInsuranceNameId());
             PriFillingIndicator = PrimaryinsuranceDetailsById.getClaimIndicator_P();
         } catch (NumberFormatException e) {
-            ErrorMsgs.add(new RuntimeException(e).getMessage());
-            return ErrorMsgs;
+            ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
         }
 
         InsuranceDTO SecondaryinsuranceDetailsById = null;
         try {
-            if (!isEmpty(claimDto.getSecondaryInsuranceId())) {
-                SecondaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(claimDto.getSecondaryInsuranceId());
+            if (!isEmpty(claim.getSecondaryInsuranceId())) {
+                SecondaryinsuranceDetailsById = masterDefService.getInsuranceDetailsById(claim.getSecondaryInsuranceId());
                 SecFillingIndicator = SecondaryinsuranceDetailsById.getClaimIndicator_P();
             }
         } catch (NumberFormatException e) {
-            ErrorMsgs.add(new RuntimeException(e).getMessage());
-            return ErrorMsgs;
+            ErrorMsgs.add("EXCEPTION " + new RuntimeException(e).getMessage());
         }
 
 
         try {
+
             if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getPayerID().equals("13174") || PrimaryinsuranceDetailsById.getPayerID().equals("06111"))) {
-                if (Freq.equals("7") || Freq.equals("8")) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b>Payer</b> does not accept <b>correct/void</b> claims electronically, please file your claim on paper<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                if (claim.getFreq().equals("7") || claim.getFreq().equals("8")) {
+                    ErrorMsgs.add("<b>Payer</b> does not accept <b>correct/void</b> claims electronically, please file your claim on paper\n");
                 }
             }
 
-            if (Freq.equals("7") || Freq.equals("8")) {
+            if (claim.getFreq().equals("7") || claim.getFreq().equals("8")) {
                 if (isEmpty(OrigClaim)) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b>Insurance Claim Control Number </b> is  <b>missing</b> , If you use frequency code <b> 7 </b> or <b>8</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b>Insurance Claim Control Number </b> is  <b>missing</b> , If you use frequency code <b> 7 </b> or <b>8</b> \n");
 
                 }
             }
 
             if (isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && isEmpty(SecondaryinsuranceDetailsById.getPayerID())) {
-                ErrorMsgs.add("<p style=\"color:black;\"><b>Insurance </b> is <b>Missing</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("<b>Insurance </b> is <b>Missing</b> \n");
             }
 
 
             if (!isEmpty(PriFillingIndicator) && (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA"))) {
 
                 //                if (PatientRelationshipCode.compareTo("18") != 0) {
-                //                    ErrorMsgs.add("<p style=\"color:black;\"><b>Subscriber Relationship</b>  must be   <b>Self</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                //                    ErrorMsgs.add("<b>Subscriber Relationship</b>  must be   <b>Self</b>\n");
                 //                }
 
                 if (!isEmpty(ReferringProviderNPI) && !isEmpty(BillingProviderNPI)) {
 
                     if (orderreferringRepository.validateOrderingOrRefferingProvider(ReferringProviderLastName, ReferringProviderNPI) == 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Referring provider </b> is <b>Invalid</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Referring provider </b> is <b>Invalid</b> \n");
                     }
 
                 }
@@ -526,7 +526,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                 if (!isEmpty(OrderingProvidersNPI) && !isEmpty(BillingProviderNPI)) {
                     if (orderreferringRepository.validateOrderingOrRefferingProvider(OrderingProvidersLastName, OrderingProvidersNPI) == 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Referring provider </b> is <b>Invalid</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Referring provider </b> is <b>Invalid</b> \n");
                     }
                 }
             }
@@ -534,44 +534,44 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
             if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getPayerID().equals("84146") || PrimaryinsuranceDetailsById.getPayerID().equals("31114"))) {
                 if (PatientRelationtoPrimary.compareTo("Self") != 0 || PatientRelationtoSec.compareTo("Self") != 0) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b>Subscriber Relationship</b>  must be   <b>Self</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b>Subscriber Relationship</b>  must be   <b>Self</b>\n");
                 }
             }
 
             if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA") || PriFillingIndicator.equals("MC"))) {
                 if (PrimaryinsuranceDetailsById.getPayerID().equals("DNC00")) {
                     if (!isEmpty(GrpNumber)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>group number</b> not allowed for <b>Medicare</b> and <b>Medicaid</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Subscriber <b>group number</b> not allowed for <b>Medicare</b> and <b>Medicaid</b> \n");
                     }
                 }
             }
 
             if (!isEmpty(PatientLastName)) {
                 if (!PatientLastName.matches(Name_REGEX)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Subscriber  <b>LastName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Subscriber  <b>LastName</b> is <b>InValid</b>\n");
                 }
 
                 if (PatientLastName.equalsIgnoreCase("TEST") || PatientLastName.equalsIgnoreCase("DEMO")) {
-                    ErrorMsgs.add("<p style=\"color:black;\">THE PATIENT SEEMS TO BE A TEST PATIENT . DO NOT SUBMIT CLAIM WITHOUT DUE VERIFICATION <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("THE PATIENT SEEMS TO BE A TEST PATIENT . DO NOT SUBMIT CLAIM WITHOUT DUE VERIFICATION \n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>LastName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Subscriber <b>LastName</b> is <b>Missing</b>\n");
             }
 
             if (!isEmpty(PatientFirstName)) {
                 if (!PatientFirstName.matches(Name_REGEX)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>FirstName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Subscriber <b>FirstName</b> is <b>InValid</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>FirstName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Subscriber <b>FirstName</b> is <b>Missing</b>\n");
             }
 
 
             final String MemberID_REGEX777 = "^([V]{1})+([0-9]{8})$";//payerid 77073
 
-            if (!isEmpty(claimDto.getMemId()) && PrimaryinsuranceDetailsById.getPayerID().equals("77073")) {
-                if (!claimDto.getMemId().matches(MemberID_REGEX777)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">subscriber id for VNS choice should start with “V” proceeded with 8 digits numeric<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (!isEmpty(claim.getMemId()) && PrimaryinsuranceDetailsById.getPayerID().equals("77073")) {
+                if (!claim.getMemId().matches(MemberID_REGEX777)) {
+                    ErrorMsgs.add("subscriber id for VNS choice should start with “V” proceeded with 8 digits numeric\n");
                 }
             }
 
@@ -579,132 +579,136 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             final String MemberID_REGEX999 = "^[^@!$\\-\\/+*.,<>&%#]*$";
 
 //                    MemId
-            if (!isEmpty(claimDto.getMemId())) {
-                if (claimDto.getMemId().matches(MemberID_REGEX) && !claimDto.getMemId().matches(MemberID_REGEX999)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>Member-ID</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (!isEmpty(claim.getMemId())) {
+                if (claim.getMemId().matches(MemberID_REGEX) && !claim.getMemId().matches(MemberID_REGEX999)) {
+                    ErrorMsgs.add("Subscriber <b>Member-ID</b> is <b>InValid</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>Member-ID</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Subscriber <b>Member-ID</b> is <b>Missing</b>\n");
             }
 
             if (!isEmpty(ZipCode)) {
                 if (isInValidZipCode(State, ZipCode)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>ZipCode</b> does not match with <b>State</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Subscriber <b>ZipCode</b> does not match with <b>State</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>ZipCode</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Subscriber <b>ZipCode</b> is <b>Missing</b>\n");
             }
 
             if (!isEmpty(City)) {
                 if (!City.matches(CITY_REGEX)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>City</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Subscriber <b>City</b> is <b>InValid</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>City</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Subscriber <b>City</b> is <b>Missing</b>\n");
             }
 
             String SubscriberDOB = "19261111";
             //system.out.println("DOB -> " + DOB);
-            if (Integer.parseInt(DOB) > Integer.parseInt(ClaimCreateDate)) {
-                ErrorMsgs.add("<p style=\"color:black;\">Subscriber <b>DOB</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (!isEmpty(DOB) && !isEmpty(ClaimCreateDate)) {
+                if (Integer.parseInt(DOB) > Integer.parseInt(ClaimCreateDate)) {
+                    ErrorMsgs.add("Subscriber <b>DOB</b> is <b>InValid</b>\n");
+                }
             }
 
             final String MemberID_REGEX000 = "^(YUB|YUX|XOJ|XOD|ZGJ|ZGD|YIJ|YID|YDJ|YDL)+([A-Z0-9])*$";//payerid 77073
-            if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getPayerID().equals("00621") || PrimaryinsuranceDetailsById.getPayerID().equals("00840") || PrimaryinsuranceDetailsById.getPayerID().equals("84980") || PrimaryinsuranceDetailsById.getPayerID().equals("00790")) && !isEmpty(claimDto.getMemId()) && Integer.parseInt(DOS) > 20170101) {
-                if (claimDto.getMemId().matches(MemberID_REGEX000)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Medicare Advantage Claim need to be resubmitter with <b>PayerID : 66006</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (!isEmpty(DOS)) {
+                if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getPayerID().equals("00621") || PrimaryinsuranceDetailsById.getPayerID().equals("00840") || PrimaryinsuranceDetailsById.getPayerID().equals("84980") || PrimaryinsuranceDetailsById.getPayerID().equals("00790")) && !isEmpty(claim.getMemId()) && Integer.parseInt(DOS) > 20170101) {
+                    if (claim.getMemId().matches(MemberID_REGEX000)) {
+                        ErrorMsgs.add("Medicare Advantage Claim need to be resubmitter with <b>PayerID : 66006</b> \n");
+                    }
                 }
             }
 
-            if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && PrimaryinsuranceDetailsById.getPayerID().equals("66006") && !isEmpty(claimDto.getMemId()) && Integer.parseInt(DOS) > 20170101) {
-                if (claimDto.getMemId().startsWith("YUB") || claimDto.getMemId().startsWith("YUX") || claimDto.getMemId().startsWith("XOJ") || claimDto.getMemId().startsWith("XOD") || claimDto.getMemId().startsWith("ZGJ") ||
-                        claimDto.getMemId().startsWith("ZGD") || claimDto.getMemId().startsWith("YIJ") || claimDto.getMemId().startsWith("YID") || claimDto.getMemId().startsWith("YDJ") || claimDto.getMemId().startsWith("YDL")) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Medicare Advantage Claim need to be resubmitter with <b>PayerID : 66006</b> when <b>secondary</b> insurance is <b>Medicare</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && PrimaryinsuranceDetailsById.getPayerID().equals("66006") && !isEmpty(claim.getMemId()) && Integer.parseInt(DOS) > 20170101) {
+                if (claim.getMemId().startsWith("YUB") || claim.getMemId().startsWith("YUX") || claim.getMemId().startsWith("XOJ") || claim.getMemId().startsWith("XOD") || claim.getMemId().startsWith("ZGJ") ||
+                        claim.getMemId().startsWith("ZGD") || claim.getMemId().startsWith("YIJ") || claim.getMemId().startsWith("YID") || claim.getMemId().startsWith("YDJ") || claim.getMemId().startsWith("YDL")) {
+                    ErrorMsgs.add("Medicare Advantage Claim need to be resubmitter with <b>PayerID : 66006</b> when <b>secondary</b> insurance is <b>Medicare</b>\n");
                 }
             }
 
 
-            if (!isEmpty(PriFillingIndicator) && PriFillingIndicator.equals("BL") && !isEmpty(claimDto.getMemId())) {
-                if (claimDto.getMemId().startsWith("TFC") || claimDto.getMemId().startsWith("CUX") || claimDto.getMemId().startsWith("DSN") || claimDto.getMemId().startsWith("FMW") || claimDto.getMemId().startsWith("HAR") ||
-                        claimDto.getMemId().startsWith("IPW") || claimDto.getMemId().startsWith("KER") || claimDto.getMemId().startsWith("NUZ") || claimDto.getMemId().startsWith("NVC") || claimDto.getMemId().startsWith("XNE")
-                        || claimDto.getMemId().startsWith("XNH") || claimDto.getMemId().startsWith("XNJ") || claimDto.getMemId().startsWith("XNN") || claimDto.getMemId().startsWith("XNV")) {
+            if (!isEmpty(PriFillingIndicator) && PriFillingIndicator.equals("BL") && !isEmpty(claim.getMemId())) {
+                if (claim.getMemId().startsWith("TFC") || claim.getMemId().startsWith("CUX") || claim.getMemId().startsWith("DSN") || claim.getMemId().startsWith("FMW") || claim.getMemId().startsWith("HAR") ||
+                        claim.getMemId().startsWith("IPW") || claim.getMemId().startsWith("KER") || claim.getMemId().startsWith("NUZ") || claim.getMemId().startsWith("NVC") || claim.getMemId().startsWith("XNE")
+                        || claim.getMemId().startsWith("XNH") || claim.getMemId().startsWith("XNJ") || claim.getMemId().startsWith("XNN") || claim.getMemId().startsWith("XNV")) {
                     if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && !PrimaryinsuranceDetailsById.getPayerID().equals("00611"))
-                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Subscriber ID</b> belongs to <b>Regence Blue Shield</b> please submit the claim to  <b>Payer ID : 00611</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add(" <b>Subscriber ID</b> belongs to <b>Regence Blue Shield</b> please submit the claim to  <b>Payer ID : 00611</b>\n");
                 }
                 //                else if (!claimDto.getMemId().startsWith("TFC") && !claimDto.getMemId().startsWith("CUX") && !claimDto.getMemId().startsWith("DSN") && !claimDto.getMemId().startsWith("FMW") && !claimDto.getMemId().startsWith("HAR") ||
                 //                        !claimDto.getMemId().startsWith("IPW") && !claimDto.getMemId().startsWith("KER") && !claimDto.getMemId().startsWith("NUZ") && !claimDto.getMemId().startsWith("NVC") && !claimDto.getMemId().startsWith("XNE")
                 //                                && !claimDto.getMemId().startsWith("XNH") && !claimDto.getMemId().startsWith("XNJ") && !claimDto.getMemId().startsWith("XNN") && !claimDto.getMemId().startsWith("XNV")) {
                 //                    if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && !PrimaryinsuranceDetailsById.getPayerID().equals("00054"))
-                //                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Subscriber ID</b> belongs to <b>Blue Cross Of Idaho</b> please submit the claim to  <b>Payer ID : 00054</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                //                        ErrorMsgs.add(" <b>Subscriber ID</b> belongs to <b>Blue Cross Of Idaho</b> please submit the claim to  <b>Payer ID : 00054</b>\n");
                 //                }
-                else if (!isEmpty(claimDto.getMemId()) && (claimDto.getMemId().startsWith("YLS89") || claimDto.getMemId().startsWith("NYC"))) {
-                    ErrorMsgs.add("<p style=\"color:black;\"> This Claim Does Not Belongs To <b>BCBS</b> ,Patient’s Policy Covers Only Hospital Benefits, Please Confirm Insurance For Medical Benefits.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                else if (!isEmpty(claim.getMemId()) && (claim.getMemId().startsWith("YLS89") || claim.getMemId().startsWith("NYC"))) {
+                    ErrorMsgs.add(" This Claim Does Not Belongs To <b>BCBS</b> ,Patient’s Policy Covers Only Hospital Benefits, Please Confirm Insurance For Medical Benefits.\n");
                 }
             }
 
 
             if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && PrimaryinsuranceDetailsById.getPayerID().equals("87726")) {
-                if (!isEmpty(claimDto.getMemId()) && claimDto.getMemId().startsWith("7") && (claimDto.getMemId().length() == 7)) {
-                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Subscriber ID</b> belongs to <b>Student Resources Insurance </b> please submit the claim to  <b>Payer ID : 74227</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                if (!isEmpty(claim.getMemId()) && claim.getMemId().startsWith("7") && (claim.getMemId().length() == 7)) {
+                    ErrorMsgs.add(" <b>Subscriber ID</b> belongs to <b>Student Resources Insurance </b> please submit the claim to  <b>Payer ID : 74227</b>\n");
                 }
             }
 
             if (!isEmpty(Payer_Zip)) {
                 if (isInValidZipCode(Payer_State, Payer_Zip)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Payer <b>ZipCode</b> does not match with <b>State</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Payer <b>ZipCode</b> does not match with <b>State</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Payer <b>ZipCode</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Payer <b>ZipCode</b> is <b>Missing</b>\n");
             }
 
             if (!isEmpty(Payer_City)) {
                 if (!Payer_City.matches(CITY_REGEX)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Payer <b>City</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Payer <b>City</b> is <b>InValid</b>\n");
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Payer <b>City</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Payer <b>City</b> is <b>Missing</b>\n");
             }
 
-            if (PriFillingIndicator.equals("MB") && !claimDto.getFreq().equals("1")) {
-                ErrorMsgs.add("<p style=\"color:black;\">Medicare always accept the claim as <b>ORIGINAL/NEW CLAIM </b>. rejected due to claim <b>frequency code</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (PriFillingIndicator.equals("MB") && !claim.getFreq().equals("1")) {
+                ErrorMsgs.add("Medicare always accept the claim as <b>ORIGINAL/NEW CLAIM </b>. rejected due to claim <b>frequency code</b>\n");
             }
 
             String Related_Causes_Code = null;
 
-            if (!isEmpty(claimDto.getClaimadditionalinfo().getAutoAccidentAddInfo()) && claimDto.getClaimadditionalinfo().getAutoAccidentAddInfo().equals("1")) {
+            if (!isEmpty(claim.getClaimadditionalinfo().getAutoAccidentAddInfo()) && claim.getClaimadditionalinfo().getAutoAccidentAddInfo().equals("1")) {
                 Related_Causes_Code = "AA";
-            } else if (!isEmpty(claimDto.getClaimadditionalinfo().getEmploymentStatusAddInfo()) && claimDto.getClaimadditionalinfo().getEmploymentStatusAddInfo().equals("1")) {
+            } else if (!isEmpty(claim.getClaimadditionalinfo().getEmploymentStatusAddInfo()) && claim.getClaimadditionalinfo().getEmploymentStatusAddInfo().equals("1")) {
                 Related_Causes_Code = "EM";
-            } else if (!isEmpty(claimDto.getClaimadditionalinfo().getOtherAccidentAddInfo()) && claimDto.getClaimadditionalinfo().getOtherAccidentAddInfo().equals("1")) {
+            } else if (!isEmpty(claim.getClaimadditionalinfo().getOtherAccidentAddInfo()) && claim.getClaimadditionalinfo().getOtherAccidentAddInfo().equals("1")) {
                 Related_Causes_Code = "OA";
             }
 
-            if (isEmpty(claimDto.getFreq())) {
-                ErrorMsgs.add("<p style=\"color:black;\"> <b>Frequency Code</b> is  <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (isEmpty(claim.getFreq())) {
+                ErrorMsgs.add(" <b>Frequency Code</b> is  <b>Missing</b>\n");
             }
 
-            if (!isEmpty(String.valueOf(claimDto.getClaimadditionalinfo().getAccidentIllnesDateAddInfo())) && !isEmpty(String.valueOf(claimDto.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()))) {
-                if (!isInValidDate(String.valueOf(claimDto.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()), DOS)
-                        && !isInValidDate(String.valueOf(claimDto.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()), DOS))
-                    if (claimDto.getClaimadditionalinfo().getAccidentIllnesDateAddInfo().equals(claimDto.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()))
-                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Illness Date</b> and <b>Last Menstrual Period Date</b>  cannot be <b>Same</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+            if (!isEmpty(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo())) && !isEmpty(String.valueOf(claim.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()))) {
+                if (!isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()), DOS)
+                        && !isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()), DOS))
+                    if (claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo().equals(claim.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()))
+                        ErrorMsgs.add(" <b>Illness Date</b> and <b>Last Menstrual Period Date</b>  cannot be <b>Same</b>\n");
             }
 
             if ((!isEmpty(Related_Causes_Code) && Related_Causes_Code.equals("AA")) || (!isEmpty(Related_Causes_Code) && Related_Causes_Code.equals("OA"))) {
-                if (isEmpty(String.valueOf(claimDto.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()))) {
-                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Accident Date</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
-                } else if (isInValidDate(String.valueOf(claimDto.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()), DOS)) {
-                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Accident Date</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                if (isEmpty(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()))) {
+                    ErrorMsgs.add(" <b>Accident Date</b> is <b>Missing</b>\n");
+                } else if (isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()), DOS)) {
+                    ErrorMsgs.add(" <b>Accident Date</b> is <b>InValid</b>\n");
                 }
             }
 
             if (!isEmpty(BillingProvider_Taxonomy)) {
                 if (Taxonomy_for_InitialTreatment_List.contains(BillingProvider_Taxonomy)) {
                     if (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA")) {
-                        if (isEmpty(String.valueOf(claimDto.getClaimadditionalinfo().getInitialTreatDateAddInfo()))) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Initial Treatment Date</b> is  <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
-                        } else if (isInValidDate(String.valueOf(claimDto.getClaimadditionalinfo().getInitialTreatDateAddInfo()), DOS)) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Initial Treatment Date</b> is  <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        if (isEmpty(String.valueOf(claim.getClaimadditionalinfo().getInitialTreatDateAddInfo()))) {
+                            ErrorMsgs.add("<b>Initial Treatment Date</b> is  <b>Missing</b>\n");
+                        } else if (isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getInitialTreatDateAddInfo()), DOS)) {
+                            ErrorMsgs.add("<b>Initial Treatment Date</b> is  <b>InValid</b>\n");
                         }
                     }
                 }
@@ -712,10 +716,10 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                 if (TaxonomyList.contains(BillingProvider_Taxonomy)) {
                     //Last Seen Date of Claim should Not be Equal to Date Time Min Value
-                    if (isEmpty(String.valueOf(claimDto.getClaimadditionalinfo().getLastSeenDateAddInfo()))) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Last Seen Date</b> is  <b>Missing</b>, Last Seen Date is required for this speciality code <b>[" + BillingProvider_Taxonomy + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
-                    } else if (isInValidDate(String.valueOf(claimDto.getClaimadditionalinfo().getLastSeenDateAddInfo()), DOS)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Last Seen Date</b> is  <b>InValid</b>,  Last Seen Date is required for this speciality code <b>[" + BillingProvider_Taxonomy + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (isEmpty(String.valueOf(claim.getClaimadditionalinfo().getLastSeenDateAddInfo()))) {
+                        ErrorMsgs.add("<b>Last Seen Date</b> is  <b>Missing</b>, Last Seen Date is required for this speciality code <b>[" + BillingProvider_Taxonomy + "]</b>\n");
+                    } else if (isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getLastSeenDateAddInfo()), DOS)) {
+                        ErrorMsgs.add("<b>Last Seen Date</b> is  <b>InValid</b>,  Last Seen Date is required for this speciality code <b>[" + BillingProvider_Taxonomy + "]</b>\n");
                     }
                 }
             }
@@ -724,37 +728,37 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 if (!isEmpty(ReferringProviderNPI)) {
                     if (ReferringProviderNPI.matches(NPI_REGEX)) {
                         if (!isValid(ReferringProviderNPI))
-                            ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                    "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                            ErrorMsgs.add("Referring Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                    "* Length of the NPI should be 10 digits\"> ");
                     } else {
-                        ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                        ErrorMsgs.add("Referring Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                "* Length of the NPI should be 10 digits\"> ");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>NPI</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Referring Provider <b>NPI</b> is <b>Missing</b>\n");
                 }
 
 
                 if (!isEmpty(ReferringProviderLastName)) {
                     if (!ReferringProviderLastName.matches(Name_REGEX)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>LastName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Referring Provider <b>LastName</b> is <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>LastName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Referring Provider <b>LastName</b> is <b>Missing</b>\n");
                 }
 
                 if (!isEmpty(ReferringProviderFirstName)) {
                     if (!ReferringProviderFirstName.matches(Name_REGEX)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>FirstName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Referring Provider <b>FirstName</b> is <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Referring Provider <b>FirstName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Referring Provider <b>FirstName</b> is <b>Missing</b>\n");
                 }
 
 
                 if (PrimaryinsuranceDetailsById.getPayerID().equals("11315") || PrimaryinsuranceDetailsById.getPayerID().equals("87726")) {
                     if (ReferringProviderNPI.equals(BillingProviderNPI)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Referring Provider  is <b>Missing/InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Referring Provider  is <b>Missing/InValid</b>\n");
                     }
                 }
             }
@@ -768,44 +772,44 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 if (!isEmpty(RenderingProvidersNPI)) {
                     if (RenderingProvidersNPI.matches(NPI_REGEX)) {
                         if (!isValid(RenderingProvidersNPI))
-                            ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                    "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                            ErrorMsgs.add("Rendering Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                    "* Length of the NPI should be 10 digits\"> ");
 
 
                         if (!isEmpty(ClientNPI)) {
                             if (ClientNPI.equals(RenderingProvidersNPI)) {
-                                ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider and Service Location <b> NPI</b> cannot be  <b>Same</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                ErrorMsgs.add("Rendering Provider and Service Location <b> NPI</b> cannot be  <b>Same</b>\n");
                             }
                         }
 
                         //                        if (!isEmpty(BillingProviderNPI)) {
                         //                            if (BillingProviderNPI.equals(RenderingProvidersNPI)) {
-                        //                                ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider and Billing Provider <b> NPI</b> cannot be  <b>Same</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        //                                ErrorMsgs.add("Rendering Provider and Billing Provider <b> NPI</b> cannot be  <b>Same</b>\n");
                         //                            }
                         //                        }
 
                     } else {
-                        ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                        ErrorMsgs.add("Rendering Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                "* Length of the NPI should be 10 digits\"> ");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>NPI</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Rendering Provider <b>NPI</b> is <b>Missing</b>\n");
                 }
 
                 if (!isEmpty(RenderingProvidersLastName)) {
                     if (!RenderingProvidersLastName.matches(Name_REGEX)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>LastName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Rendering Provider <b>LastName</b> is <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>LastName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Rendering Provider <b>LastName</b> is <b>Missing</b>\n");
                 }
 
                 if (!isEmpty(RenderingProvidersFirstName)) {
                     if (!RenderingProvidersFirstName.matches(Name_REGEX)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>FirstName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Rendering Provider <b>FirstName</b> is <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>FirstName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Rendering Provider <b>FirstName</b> is <b>Missing</b>\n");
                 }
 
 
@@ -814,10 +818,10 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                 if (!isEmpty(RenderingProviders_Taxonomy)) {
                     if (isInValidTaxonomy(RenderingProviders_Taxonomy)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>Taxonomy Code</b> is  <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Rendering Provider <b>Taxonomy Code</b> is  <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Rendering Provider <b>Taxonomy Code</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Rendering Provider <b>Taxonomy Code</b> is <b>Missing</b>\n");
                 }
                 //                loop_2310B.addSegment("PRV*PE*PXC*" + RenderingProviders_Taxonomy); //PRV Rendering Provider SPECIALTY
 
@@ -827,20 +831,20 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             if (!isEmpty(ClientNPI)) {
                 if (ClientNPI.matches(NPI_REGEX)) {
                     if (!isValid(ClientNPI))
-                        ErrorMsgs.add("<p style=\"color:black;\">Client <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                        ErrorMsgs.add("Client <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                "* Length of the NPI should be 10 digits\"> ");
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Client <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                            "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                    ErrorMsgs.add("Client <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                            "* Length of the NPI should be 10 digits\"> ");
                 }
 
                 if (!isEmpty(BillingProviderNPI)) {
                     if (ClientNPI.equals(BillingProviderNPI)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Billing Provider NPI </b> and <b>Client NPI</b> cannot be <b>same</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Billing Provider NPI </b> and <b>Client NPI</b> cannot be <b>same</b> \n");
                     }
                 }
             } else {
-                ErrorMsgs.add("<p style=\"color:black;\">Client  <b>NPI</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                ErrorMsgs.add("Client  <b>NPI</b> is <b>Missing</b>\n");
             }
 
 
@@ -848,31 +852,31 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 if (!isEmpty(SupervisingProviderNPI)) {
                     if (SupervisingProviderNPI.matches(NPI_REGEX)) {
                         if (!isValid(SupervisingProviderNPI))
-                            ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                    "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                            ErrorMsgs.add("Supervising Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                    "* Length of the NPI should be 10 digits\"> ");
                     } else {
-                        ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
-                                "* Length of the NPI should be 10 digits\"> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>");
+                        ErrorMsgs.add("Supervising Provider <b>NPI</b> is <b>InValid</b><span data-toggle=\"tooltip\" title=\"Mentioned below might be the causes\n* NPI should contain Numeric Characters \n" +
+                                "* Length of the NPI should be 10 digits\"> ");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>NPI</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Supervising Provider <b>NPI</b> is <b>Missing</b>\n");
                 }
 
 
                 if (!isEmpty(SupervisingProviderLastName)) {
                     if (!SupervisingProviderLastName.matches(Name_REGEX)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>LastName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Supervising Provider <b>LastName</b> is <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>LastName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Supervising Provider <b>LastName</b> is <b>Missing</b>\n");
                 }
 
                 if (!isEmpty(SupervisingProviderFirstName)) {
                     if (!SupervisingProviderFirstName.matches(Name_REGEX)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>FirstName</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Supervising Provider <b>FirstName</b> is <b>InValid</b>\n");
                     }
                 } else {
-                    ErrorMsgs.add("<p style=\"color:black;\">Supervising Provider <b>FirstName</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Supervising Provider <b>FirstName</b> is <b>Missing</b>\n");
                 }
 
                 //                Loop loop_2310D = loop_2300.addChild("2300");
@@ -934,40 +938,40 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             int units_Of_90461 = -1;
             int sum_Of_units_Of_allVaccines = 0;
 
-            for (int i = 0; i < claimDto.getClaimchargesinfo().size(); i++) {
+            for (int i = 0; i < claim.getClaimchargesinfo().size(); i++) {
                 modifier = "";
-                ServiceFromDate = claimDto.getClaimchargesinfo().get(i).getServiceFromDate();//ChargesInput[i][0];
-                ServiceToDate = claimDto.getClaimchargesinfo().get(i).getServiceToDate();//ChargesInput[i][1];
+                ServiceFromDate = claim.getClaimchargesinfo().get(i).getServiceFromDate();//ChargesInput[i][0];
+                ServiceToDate = claim.getClaimchargesinfo().get(i).getServiceToDate();//ChargesInput[i][1];
 
-                POS = claimDto.getClaimchargesinfo().get(i).getPos();//ChargesInput[i][3];
+                POS = claim.getClaimchargesinfo().get(i).getPos();//ChargesInput[i][3];
                 if (POS_list_AMBULANCE_CLAIMS.contains(POS)) {
-                    if (isEmpty(claimDto.getClaimadditionalinfo().getHospitalizedFromDateAddInfo())) {
-                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Admission DATE</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (isEmpty(claim.getClaimadditionalinfo().getHospitalizedFromDateAddInfo())) {
+                        ErrorMsgs.add(" <b>Admission DATE</b> is <b>Missing</b>\n");
 
-                    } else if (isInValidDate(claimDto.getClaimadditionalinfo().getHospitalizedFromDateAddInfo(), DOS)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Admission DATE </b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    } else if (isInValidDate(claim.getClaimadditionalinfo().getHospitalizedFromDateAddInfo(), DOS)) {
+                        ErrorMsgs.add(" <b>Admission DATE </b> is <b>InValid</b>\n");
 
                     }
                 }
 
 
                 if (POS_list.contains(POS)) {
-                    if (!isEmpty(claimDto.getClaimambulancecode().getPickUpAddressInfoCode()) && !isEmpty(claimDto.getClaimambulancecode().getPickUpZipCodeInfoCode())
-                            && !isEmpty(claimDto.getClaimambulancecode().getPickUpCityInfoCode()) && !isEmpty(claimDto.getClaimambulancecode().getPickUpStateInfoCode())) {
-                        if (!isEmpty(claimDto.getClaimambulancecode().getPickUpZipCodeInfoCode())) {
-                            if (isInValidZipCode(claimDto.getClaimambulancecode().getPickUpStateInfoCode(), claimDto.getClaimambulancecode().getPickUpZipCodeInfoCode())) {
-                                ErrorMsgs.add("<p style=\"color:black;\">Pick Up <b>ZipCode</b> does not match with <b>State</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (!isEmpty(claim.getClaimambulancecode().getPickUpAddressInfoCode()) && !isEmpty(claim.getClaimambulancecode().getPickUpZipCodeInfoCode())
+                            && !isEmpty(claim.getClaimambulancecode().getPickUpCityInfoCode()) && !isEmpty(claim.getClaimambulancecode().getPickUpStateInfoCode())) {
+                        if (!isEmpty(claim.getClaimambulancecode().getPickUpZipCodeInfoCode())) {
+                            if (isInValidZipCode(claim.getClaimambulancecode().getPickUpStateInfoCode(), claim.getClaimambulancecode().getPickUpZipCodeInfoCode())) {
+                                ErrorMsgs.add("Pick Up <b>ZipCode</b> does not match with <b>State</b>\n");
                             }
                         } else {
-                            ErrorMsgs.add("<p style=\"color:black;\">Pick Up <b>ZipCode</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Pick Up <b>ZipCode</b> is <b>Missing</b>\n");
                         }
 
-                        if (!isEmpty(claimDto.getClaimambulancecode().getPickUpCityInfoCode())) {
-                            if (!claimDto.getClaimambulancecode().getPickUpCityInfoCode().matches(CITY_REGEX)) {
-                                ErrorMsgs.add("<p style=\"color:black;\">Pick Up <b>City</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        if (!isEmpty(claim.getClaimambulancecode().getPickUpCityInfoCode())) {
+                            if (!claim.getClaimambulancecode().getPickUpCityInfoCode().matches(CITY_REGEX)) {
+                                ErrorMsgs.add("Pick Up <b>City</b> is <b>InValid</b>\n");
                             }
                         } else {
-                            ErrorMsgs.add("<p style=\"color:black;\">Pick Up <b>City</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Pick Up <b>City</b> is <b>Missing</b>\n");
                         }
 
                         //                    Loop loop_2310E = loop_2300.addChild("2300"); //AMBULANCE PICK-UP LOCATION
@@ -976,22 +980,22 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                         //                    loop_2310E.addSegment("N4*" + PickUpCityInfoCode + "*" + PickUpStateInfoCode + "*" + PickUpZipCodeInfoCode);
                     }
 
-                    if (!isEmpty(claimDto.getClaimambulancecode().getDropoffAddressInfoCode()) && !isEmpty(claimDto.getClaimambulancecode().getDropoffCityInfoCode())
-                            && !isEmpty(claimDto.getClaimambulancecode().getDropoffStateInfoCode()) && !isEmpty(claimDto.getClaimambulancecode().getDropoffZipCodeInfoCode())) {
-                        if (!isEmpty(claimDto.getClaimambulancecode().getDropoffZipCodeInfoCode())) {
-                            if (isInValidZipCode(claimDto.getClaimambulancecode().getDropoffStateInfoCode(), claimDto.getClaimambulancecode().getDropoffZipCodeInfoCode())) {
-                                ErrorMsgs.add("<p style=\"color:black;\">Drop off <b>ZipCode</b> does not match with <b>State</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (!isEmpty(claim.getClaimambulancecode().getDropoffAddressInfoCode()) && !isEmpty(claim.getClaimambulancecode().getDropoffCityInfoCode())
+                            && !isEmpty(claim.getClaimambulancecode().getDropoffStateInfoCode()) && !isEmpty(claim.getClaimambulancecode().getDropoffZipCodeInfoCode())) {
+                        if (!isEmpty(claim.getClaimambulancecode().getDropoffZipCodeInfoCode())) {
+                            if (isInValidZipCode(claim.getClaimambulancecode().getDropoffStateInfoCode(), claim.getClaimambulancecode().getDropoffZipCodeInfoCode())) {
+                                ErrorMsgs.add("Drop off <b>ZipCode</b> does not match with <b>State</b>\n");
                             }
                         } else {
-                            ErrorMsgs.add("<p style=\"color:black;\">Drop off <b>ZipCode</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Drop off <b>ZipCode</b> is <b>Missing</b>\n");
                         }
 
-                        if (!isEmpty(claimDto.getClaimambulancecode().getDropoffCityInfoCode())) {
-                            if (!claimDto.getClaimambulancecode().getDropoffCityInfoCode().matches(CITY_REGEX)) {
-                                ErrorMsgs.add("<p style=\"color:black;\">Drop off <b>City</b> is <b>InValid</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        if (!isEmpty(claim.getClaimambulancecode().getDropoffCityInfoCode())) {
+                            if (!claim.getClaimambulancecode().getDropoffCityInfoCode().matches(CITY_REGEX)) {
+                                ErrorMsgs.add("Drop off <b>City</b> is <b>InValid</b>\n");
                             }
                         } else {
-                            ErrorMsgs.add("<p style=\"color:black;\">Drop off <b>City</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Drop off <b>City</b> is <b>Missing</b>\n");
                         }
 
                         //                    Loop loop_2310F = loop_2300.addChild("2300"); //AMBULANCE DROP-OFF LOCATION
@@ -1002,37 +1006,37 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
 
-                Units = String.valueOf(claimDto.getClaimchargesinfo().get(i).getUnits());
+                Units = String.valueOf(claim.getClaimchargesinfo().get(i).getUnits());
                 Units = Units.contains(".") ? Units.substring(0, Units.indexOf(".")) : Units;
-                Amount = String.valueOf(claimDto.getClaimchargesinfo().get(i).getAmount());//ChargesInput[i][12];
-                ProcedureCode = claimDto.getClaimchargesinfo().get(i).getHCPCSProcedure();//ChargesInput[i][2];
-                mod1 = claimDto.getClaimchargesinfo().get(i).getMod1();//ChargesInput[i][5];
-                mod2 = claimDto.getClaimchargesinfo().get(i).getMod2();//ChargesInput[i][6];
-                mod3 = claimDto.getClaimchargesinfo().get(i).getMod3();//ChargesInput[i][7];
-                mod4 = claimDto.getClaimchargesinfo().get(i).getMod4();//ChargesInput[i][8];
-                DXPointer = claimDto.getClaimchargesinfo().get(i).getDXPointer();//ChargesInput[i][9];
+                Amount = String.valueOf(claim.getClaimchargesinfo().get(i).getAmount());//ChargesInput[i][12];
+                ProcedureCode = claim.getClaimchargesinfo().get(i).getHCPCSProcedure();//ChargesInput[i][2];
+                mod1 = claim.getClaimchargesinfo().get(i).getMod1();//ChargesInput[i][5];
+                mod2 = claim.getClaimchargesinfo().get(i).getMod2();//ChargesInput[i][6];
+                mod3 = claim.getClaimchargesinfo().get(i).getMod3();//ChargesInput[i][7];
+                mod4 = claim.getClaimchargesinfo().get(i).getMod4();//ChargesInput[i][8];
+                DXPointer = claim.getClaimchargesinfo().get(i).getDXPointer();//ChargesInput[i][9];
                 ////system.out.println("****ProcedureCode");
 
 
                 if (enmprocedureRepository.validateE_N_M_ProceduresCodes(ProcedureCode) == 1) {//isValid_E_N_M_ProceduresCodes(conn, ProcedureCode)) {
                     if (!isEmpty(mod1)) {
                         if (enmNotallowedModifierRepository.validateE_N_M_Modifiers(mod1) > 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Modifier <b>[ " + mod1 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Modifier <b>[ " + mod1 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b>\n");
                         }
                     }
                     if (!isEmpty(mod2)) {
                         if (enmNotallowedModifierRepository.validateE_N_M_Modifiers(mod2) > 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Modifier <b>[ " + mod2 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Modifier <b>[ " + mod2 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b>\n");
                         }
                     }
                     if (!isEmpty(mod3)) {
                         if (enmNotallowedModifierRepository.validateE_N_M_Modifiers(mod3) > 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Modifier <b>[ " + mod3 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Modifier <b>[ " + mod3 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b>\n");
                         }
                     }
                     if (!isEmpty(mod4)) {
                         if (enmNotallowedModifierRepository.validateE_N_M_Modifiers(mod4) > 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Modifier <b>[ " + mod4 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Modifier <b>[ " + mod4 + " ]</b> is <b>not allowed </b> with E&M Procedure code <b>[ " + ProcedureCode + " ]</b>\n");
                         }
                     }
                 }
@@ -1043,11 +1047,11 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     if (!isEmpty(mod1)) {//mod1
                         modifier += ":" + mod1; //SV101-3
                         if (Units.equals("1") && mod1.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
 
                         if (anesthesiamodifierRepository.validateAnesthesiaModifier(mod1) == 0) {//isValidAnesthesiaModifier(conn, mod1)) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures [" + ProcedureCode + "]</b>\n");
                         }
 
 
@@ -1055,33 +1059,33 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     if (!isEmpty(mod2)) {//mod2
                         modifier += ":" + mod2;
                         if (Units.equals("1") && mod2.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
 
                         if (anesthesiamodifierRepository.validateAnesthesiaModifier(mod2) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures [" + ProcedureCode + "]</b>\n");
                         }
                     }
                     if (!mod3.equals("")) {//mod3
                         modifier += ":" + mod3;
                         if (Units.equals("1") && mod3.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
 
 
                         if (anesthesiamodifierRepository.validateAnesthesiaModifier(mod3) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures " + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures " + ProcedureCode + "]</b>\n");
                         }
                     }
                     if (!mod4.equals("")) {//mod4
                         modifier += ":" + mod4;
                         if (Units.equals("1") && mod4.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
 
 
                         if (anesthesiamodifierRepository.validateAnesthesiaModifier(mod4) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Anesthesia Modifier</b>  is only allowed with  <b>Anesthesia Procedures [" + ProcedureCode + "]</b>\n");
                         }
                     }
 
@@ -1090,28 +1094,28 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     MeasurementCode = "UN";
                     if (!isEmpty(mod1)) {//mod1
                         modifier += ":" + mod1; //SV101-3
-                        if (claimDto.getClientId() == 32) {
+                        if (claim.getClientId() == 32) {
                             if (Units.equals("1") && mod1.equals("50")) {
-                                ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                             }
                         }
                     }
                     if (!isEmpty(mod2)) {//mod2
                         modifier += ":" + mod2;
                         if (Units.equals("1") && mod2.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
                     }
                     if (!isEmpty(mod3)) {//mod3
                         modifier += ":" + mod3;
                         if (Units.equals("1") && mod3.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
                     }
                     if (!isEmpty(mod4)) {//mod4
                         modifier += ":" + mod4;
                         if (Units.equals("1") && mod4.equals("50")) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Units must be greater than <b>ONE</b> when a modifier of <b>50</b> is used.\n");
                         }
                     }
                 }
@@ -1134,7 +1138,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (MajorSurgeryDOS.equals(EnMSurgeryDOS) || MajorSurgeryDOS.equals(String.valueOf(Integer.parseInt(EnMSurgeryDOS) - 1)) || EnMSurgeryDOS.equals(String.valueOf(Integer.parseInt(MajorSurgeryDOS) - 1))) {
                         if (!modifier.contains("57")) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Major Surgery</b> identified on the day or one day before E&M please append <b>modifier 57</b> with <b>E&M</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Major Surgery</b> identified on the day or one day before E&M please append <b>modifier 57</b> with <b>E&M</b>\n");
                         }
                     }
                 }
@@ -1151,7 +1155,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDA + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDA + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1159,12 +1163,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDA + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDA + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDA + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDA + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1172,7 +1176,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDA) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDA + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDA + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
 
@@ -1188,7 +1192,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDB + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDB + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1196,19 +1200,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDB + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDB + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDB + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDB + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDB) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDB + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDB + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1223,7 +1227,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDC + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDC + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1231,19 +1235,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDC + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDC + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDC + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDC + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDC) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDC + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDC + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1258,7 +1262,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDD + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDD + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1266,12 +1270,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDD + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDD + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDD + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDD + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1279,7 +1283,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDD) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDD + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDD + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1295,7 +1299,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDE + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDE + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1303,19 +1307,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDE + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDE + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDE + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDE + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDE) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDE + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDE + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1330,7 +1334,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDF + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDF + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1338,19 +1342,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDF + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDF + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDF + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDF + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDF) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDF + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDF + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1365,7 +1369,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDG + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDG + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1373,19 +1377,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDG + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDG + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDG + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDG + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDG) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDG + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDG + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1400,7 +1404,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDH + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDH + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1408,12 +1412,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDH + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDH + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDH + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDH + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1421,7 +1425,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDH) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDH + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code  i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDH + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code  i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1434,7 +1438,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDI + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDI + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1442,12 +1446,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDI + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDI + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDI + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDI + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1455,7 +1459,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDI) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDI + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code. <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDI + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code. \n");
                         }
                     }
                 }
@@ -1468,7 +1472,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDJ + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDJ + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1476,12 +1480,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDJ + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDJ + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDJ + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDJ + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1489,7 +1493,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDJ) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDJ + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code  i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDJ + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code  i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1502,7 +1506,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDK + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDK + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1510,12 +1514,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDK + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDK + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDK + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDK + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1523,7 +1527,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDK) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDK + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDK + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
@@ -1536,7 +1540,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F8") || modifier.contains("F9") || modifier.contains("T5") || modifier.contains("T6") ||
                     //                                    modifier.contains("T7") || modifier.contains("T8") || modifier.contains("T9") || modifier.contains("E3") ||
                     //                                    modifier.contains("E4"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDL + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDL + "]</b> Please append one of these <b>relative modifiers : [RT, F5, F6, F7, F8, F9, T5, T6, T7, T8, T9, E3, E4] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Left")) {
@@ -1544,12 +1548,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    modifier.contains("F3") || modifier.contains("F4") || modifier.contains("TA") || modifier.contains("T1") ||
                     //                                    modifier.contains("T2") || modifier.contains("T3") || modifier.contains("T4") || modifier.contains("E1") ||
                     //                                    modifier.contains("E2"))) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDL + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDL + "]</b> Please append one of these <b>relative modifiers : [LT, FA, F1, F2, F3, F4, TA, T1, T2, T3, T4, E1, E2] </b> \n");
                     //                            }
                     //                        }
                     //                        if (r1.equals("Bilateral")) {
                     //                            if (!modifier.contains("50")) {
-                    //                                ErrorMsgs.add("<p style=\"color:black;\"> <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDL + "]</b> Please append  <b>relative modifier : 50 </b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                ErrorMsgs.add(" <b> Modifier </b> used with <b>Procedure : [" + ProcedureCode + "]</b> does not follow the laterality of <b>Diagnosis Code : [" + ICDL + "]</b> Please append  <b>relative modifier : 50 </b> \n");
                     //                            }
                     //                        }
                     //                    }
@@ -1557,31 +1561,31 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                     if (ProcedureCode.equals("69209") || ProcedureCode.equals("69210") || ProcedureCode.equals("G0268")) {
                         if (iCDRepository.find_ICD_between_Ranges(addChar("H612", '.', 3), addChar("H6123", '.', 3), ICDL) == 0) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Non Supportive ICD : [" + ICDL + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code  i.e [<b>H61.2 - H61.23</b>] <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Non Supportive ICD : [" + ICDL + "]</b> Found With <b>Procedure Code [" + ProcedureCode + "]</b>, Please Report Supportive Diagnosis Code  i.e [<b>H61.2 - H61.23</b>] \n");
                         }
                     }
                 }
 
                 //                if (!isValidCLIACodes(conn, ProcedureCode)) {
                 //                    if (modifier.contains("QW")) {
-                //                        ErrorMsgs.add("<p style=\"color:black;\"><b>QW Modifier</b>  is not allowed with  <b>Procedure : [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                //                        ErrorMsgs.add("<b>QW Modifier</b>  is not allowed with  <b>Procedure : [" + ProcedureCode + "]</b>\n");
                 //                    }
                 //                }
 
 
                 //                //system.out.println("MODIFIER ->> " + modifier);
                 if (!isEmpty(modifier) && (modifier.contains("59") && (modifier.contains("XE") || modifier.contains("XP") || modifier.contains("XS") || modifier.contains("XU")))) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b>distinct procedural services modifiers</b> and <b>59</b> is incorrect to report of same line-item , please remove one of them<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b>distinct procedural services modifiers</b> and <b>59</b> is incorrect to report of same line-item , please remove one of them\n");
                 }
 
 
                 if (consultantprocedureRepository.validateConsultantProceduresCodes(ProcedureCode) == 1) {//isValidConsultantProceduresCodes(conn, ProcedureCode)) {
                     if (isEmpty(ReferringProviderFirstName) && isEmpty(ReferringProviderLastName)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Referring provider</b>  is required with  <b>Consultation Procedure : [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Referring provider</b>  is required with  <b>Consultation Procedure : [" + ProcedureCode + "]</b>\n");
                     }
 
-                    if (!isEmpty(claimDto.getMemId()) && claimDto.getMemId().startsWith("MC") && !isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && PrimaryinsuranceDetailsById.getPayerID().equals("27094")) {
-                        ErrorMsgs.add("<p style=\"color:black;\"> Patient has <b>Medicare</b> insurance type , . We Cannot Bill <b>Consultation Codes</b> To This Plan.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (!isEmpty(claim.getMemId()) && claim.getMemId().startsWith("MC") && !isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && PrimaryinsuranceDetailsById.getPayerID().equals("27094")) {
+                        ErrorMsgs.add(" Patient has <b>Medicare</b> insurance type , . We Cannot Bill <b>Consultation Codes</b> To This Plan.\n");
                     }
                 }
 
@@ -1591,7 +1595,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     ////system.out.println(" isValid_E_N_M_ProceduresCodes ProcedureCode -> " + ProcedureCode);
 
                     if (isENM_SurgeryProcedureCode) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b> E&M Procedure </b> and  <b> E&M Surgery Codes </b> cannot be billed together on same DOS<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b> E&M Procedure </b> and  <b> E&M Surgery Codes </b> cannot be billed together on same DOS\n");
                         isENM_SurgeryProcedureCode = false;
                         isENMProcedureCode = false;
                         errorMsgAdded = true;
@@ -1603,7 +1607,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 if (enmsurgerycodeRepository.validateE_N_M_Surgery_ProceduresCodes(ProcedureCode) == 1 && !errorMsgAdded) {
                     ////system.out.println("isValid_E_N_M_Surgery_ProceduresCodes ProcedureCode -> " + ProcedureCode);
                     if (isENMProcedureCode) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b> E&M Procedure </b> and  <b> E&M Surgery Codes </b> cannot be billed together on same DOS<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b> E&M Procedure </b> and  <b> E&M Surgery Codes </b> cannot be billed together on same DOS\n");
                         isENM_SurgeryProcedureCode = false;
                         isENMProcedureCode = false;
                         errorMsgAdded = true;
@@ -1614,25 +1618,25 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                 if (espdtprocedureRepository.validateEPSDT_ProceduresCodes(ProcedureCode) == 1 && (PriFillingIndicator.equals("MC") || SecFillingIndicator.equals("MC"))
                         && (getAge(LocalDate.parse(_DOB)) < 21) && modifier.contains("EP")) {
-                    ErrorMsgs.add("<p style=\"color:black;\">eligible medicaid recipient for <b>EPSDT</b> services  are less than <b>21 year</b> of age. patient  age is not appropriate to bill this service please remove modifier <b>EP</b>.<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("eligible medicaid recipient for <b>EPSDT</b> services  are less than <b>21 year</b> of age. patient  age is not appropriate to bill this service please remove modifier <b>EP</b>.\n");
                 }
 
                 if (espdtprocedureRepository.validateEPSDT_ProceduresCodes(ProcedureCode) == 1 && (!PriFillingIndicator.equals("MC") || !SecFillingIndicator.equals("MC"))) {
-                    ErrorMsgs.add("<p style=\"color:black;\"> <b>EPSDT</b> Code is used it may be used on <b>MEDICAID</b> claims only <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add(" <b>EPSDT</b> Code is used it may be used on <b>MEDICAID</b> claims only \n");
                 }
 
 
                 if ((modifier.contains("GV") || modifier.contains("GW")) && (!PriFillingIndicator.equals("MB") || !SecFillingIndicator.equals("MB"))) {
-                    ErrorMsgs.add("<p style=\"color:black;\">modifier <b> GW/GV </b> indicates hospice services, please file claim to <b>medicare</b> or remove the modifier<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("modifier <b> GW/GV </b> indicates hospice services, please file claim to <b>medicare</b> or remove the modifier\n");
                 }
 
                 if (ProcedureCodes_List.contains(ProcedureCode)) {
                     if (Integer.parseInt(Units) > 1) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Hospital Admission Service For Cpt <b> [" + ProcedureCode + "] </b> Should Always Billed As <b>One</b> Unit <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Hospital Admission Service For Cpt <b> [" + ProcedureCode + "] </b> Should Always Billed As <b>One</b> Unit \n");
                     }
 
                     if (!ServiceFromDate.equals(ServiceToDate)) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Hospital Admission Service For Cpt <b> [" + ProcedureCode + "] </b> Start/End Dos Should Be Same <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Hospital Admission Service For Cpt <b> [" + ProcedureCode + "] </b> Start/End Dos Should Be Same \n");
                     }
                 }
 
@@ -1642,13 +1646,13 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
                 if (ProcedureCodes_List_A_S_DATES_r1.contains(ProcedureCode) || ProcedureCodes_List_A_S_DATES_r2.contains(ProcedureCode)) {
-                    if (claimDto.getClaimadditionalinfo().getHospitalizedFromDateAddInfo().equals(claimDto.getClaimadditionalinfo().getHospitalizedToDateAddInfo())) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + ProcedureCode + "]</b> is inconsistent  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (claim.getClaimadditionalinfo().getHospitalizedFromDateAddInfo().equals(claim.getClaimadditionalinfo().getHospitalizedToDateAddInfo())) {
+                        ErrorMsgs.add("Procedure Code <b>[" + ProcedureCode + "]</b> is inconsistent  \n");
                     }
                 }
 
                 if (cliaRepository.validateCLIACodes(ProcedureCode) == 1 && (modifier.contains("24") || modifier.contains("25"))) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b>Modifier [ 24 , 25 ]</b> is <b>Not</b> allowed with  procedure <b>[" + ProcedureCode + "]</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b>Modifier [ 24 , 25 ]</b> is <b>Not</b> allowed with  procedure <b>[" + ProcedureCode + "]</b> \n");
                 }
 
                 if ((PriFillingIndicator.equals("MA") || SecFillingIndicator.equals("MA")) ||
@@ -1656,16 +1660,16 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                         ((PriFillingIndicator.equals("16") || SecFillingIndicator.equals("16")))) {
 
                     if (cliaRepository.validateCLIACodes(ProcedureCode) == 1 && !modifier.contains("QW")) {
-                        ErrorMsgs.add("<p style=\"color:black;\">CLIA required procedure <b>[" + ProcedureCode + "]</b> found, Procedure may require <b>QW</b> modifier  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("CLIA required procedure <b>[" + ProcedureCode + "]</b> found, Procedure may require <b>QW</b> modifier  \n");
                     }
                     //                    else if (modifier.contains("QW") && !isValidCLIACodes(conn, ProcedureCode)) {
-                    //                        ErrorMsgs.add("<p style=\"color:black;\"><b>QW</b> modifier found, Modifier may require <b>CLIA</b>procedure code  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                        ErrorMsgs.add("<b>QW</b> modifier found, Modifier may require <b>CLIA</b>procedure code  \n");
                     //                    }
 
 
                     if (dmeHcpcRepository.validateDMEProceduresCodes(ProcedureCode) == 1) {
                         if (isEmpty(OrderingProvidersFirstName) && isEmpty(OrderingProvidersLastName)) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Ordering provider</b>  is required with  <b>DME Procedure : [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Ordering provider</b>  is required with  <b>DME Procedure : [" + ProcedureCode + "]</b>\n");
                         }
                     }
 
@@ -1676,7 +1680,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     //                                    || ICDJ.equals("Z23") || ICDK.equals("Z23") || ICDL.equals("Z23"))) {
                     //                                if (ProcedureCode.equals("G0008") || ProcedureCode.equals("G0009") || ProcedureCode.equals("G0010")) {
                     //                                    if(!containsValidRelativeAdminCode(conn,ProcedureCode,Charge_ProcedureCodes,"Z23")){
-                    //                                        ErrorMsgs.add("<p style=\"color:black;\"><b>Bill Vaccine Code : "+getRespectiveVaccineCode(conn,ProcedureCode,"Z23").toString()+"</b>  is required to bill  <b>Relative Admin Code : [" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                                        ErrorMsgs.add("<b>Bill Vaccine Code : "+getRespectiveVaccineCode(conn,ProcedureCode,"Z23").toString()+"</b>  is required to bill  <b>Relative Admin Code : [" + ProcedureCode + "]</b>\n");
                     //                                    }
                     //                                }
                     //
@@ -1723,33 +1727,33 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     Date date2 = myFormat.parse(myFormat.format(fromUser.parse(ServiceToDate)));
                     long daysBetween = date2.getTime() - date1.getTime();
                     if (Integer.parseInt(Units) < TimeUnit.DAYS.convert(daysBetween, TimeUnit.MILLISECONDS)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Units</b> of  Procedure [<b>" + ProcedureCode + "</b>] is <b>InValid</b> <b>Units per day</b> must be <b>greater</b> than <b>1</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Units</b> of  Procedure [<b>" + ProcedureCode + "</b>] is <b>InValid</b> <b>Units per day</b> must be <b>greater</b> than <b>1</b> \n");
                     }
                     //system.out.println("daysBetween -> " + daysBetween);
                     //system.out.println("daysBetween -> " + TimeUnit.DAYS.convert(daysBetween, TimeUnit.MILLISECONDS));
                 }
 
                 if (pqrscodeRepository.validatePQRSCodes(ProcedureCode) == 1 && Integer.parseInt(Amount) != 0) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b>PQRS : [" + ProcedureCode + "]</b> Procedure found, <b>Amount</b> should be <b>equal</b> to 0 <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b>PQRS : [" + ProcedureCode + "]</b> Procedure found, <b>Amount</b> should be <b>equal</b> to 0 \n");
                 } else if (Double.parseDouble(Amount) <= 0) {
-                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Amount</b> should be <b>greater</b> than 0 for Procedure [" + ProcedureCode + "]<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add(" <b>Amount</b> should be <b>greater</b> than 0 for Procedure [" + ProcedureCode + "]\n");
                 }
 
 
                 if (ndcCptCrosswalkRepository.validateNDC_Code(ProcedureCode) > 0) {
-                    if (claimDto.getClaimchargesinfo().get(i).getClaimchargesotherinfo() == null) {//ChargesInput[i][14].compareTo("NULL") == 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>NDC information</b> is <b>missing</b> for Procedure <b>[" + ProcedureCode + "]</b>. it must be used when reporting for <b>drug</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() == null) {//ChargesInput[i][14].compareTo("NULL") == 0) {
+                        ErrorMsgs.add("<b>NDC information</b> is <b>missing</b> for Procedure <b>[" + ProcedureCode + "]</b>. it must be used when reporting for <b>drug</b>\n");
                     } else {
                         //                    obj = mapper.readValue(ChargesInput[i][14], JsonNode.class);
-                        if (claimDto.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugCode().equals("")) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>National Drug Code</b> is <b>missing</b> for Procedure <b>[" + ProcedureCode + "]</b> . it must be used when reporting for <b>drug</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        if (claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugCode().equals("")) {
+                            ErrorMsgs.add("<b>National Drug Code</b> is <b>missing</b> for Procedure <b>[" + ProcedureCode + "]</b> . it must be used when reporting for <b>drug</b>\n");
                         } else {
-                            if (!claimDto.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugCode().replace("-", "").matches(NDC_REGEX) || ndcCptCrosswalkRepository.validateNDC_Code_Format(ProcedureCode, claimDto.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugCode()) == 0) {
-                                ErrorMsgs.add("<p style=\"color:black;\"><b>National Drug Code</b> is <b>inValid</b> for Procedure <b>[" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            if (!claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugCode().replace("-", "").matches(NDC_REGEX) || ndcCptCrosswalkRepository.validateNDC_Code_Format(ProcedureCode, claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugCode()) == 0) {
+                                ErrorMsgs.add("<b>National Drug Code</b> is <b>inValid</b> for Procedure <b>[" + ProcedureCode + "]</b>\n");
                             }
                         }
-                        if (claimDto.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugUnit().equals("")) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>National Drug Quantity</b> is <b>missing</b> for Procedure <b>[" + ProcedureCode + "]</b> . it must be used when reporting for <b>drug</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        if (claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().getDrugUnit().equals("")) {
+                            ErrorMsgs.add("<b>National Drug Quantity</b> is <b>missing</b> for Procedure <b>[" + ProcedureCode + "]</b> . it must be used when reporting for <b>drug</b>\n");
                         }
                     }
                 }
@@ -1758,23 +1762,23 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                         WELL_VISIT_ICDs.contains(ICDD) || WELL_VISIT_ICDs.contains(ICDE) || WELL_VISIT_ICDs.contains(ICDF)
                         || WELL_VISIT_ICDs.contains(ICDG) || WELL_VISIT_ICDs.contains(ICDH) || WELL_VISIT_ICDs.contains(ICDI)
                         || WELL_VISIT_ICDs.contains(ICDJ) || WELL_VISIT_ICDs.contains(ICDK) || WELL_VISIT_ICDs.contains(ICDL))) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + ProcedureCode + "]</b>  is not <b>billable</b> with wellness ICDs <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Procedure Code <b>[" + ProcedureCode + "]</b>  is not <b>billable</b> with wellness ICDs \n");
                 }
 
                 if ((PriFillingIndicator.equals("CI") || SecFillingIndicator.equals("CI"))) {
                     if (cPTRepository.find_CPT_between_Ranges("99381", "99397", ProcedureCode) > 0 && iCDRepository.find_ICD_between_Ranges(addChar("Z0000", '.', 3), addChar("Z139", '.', 3), ICDA) == 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>ICD A</b> must be <b>Well visit</b> diagnose i.e  <b>Z00 - Z13.9</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>ICD A</b> must be <b>Well visit</b> diagnose i.e  <b>Z00 - Z13.9</b> \n");
                     }
 
                 }
 
                 if ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB"))) {
                     if (WELL_VISIT_CPTs.contains(ProcedureCode) && iCDRepository.find_ICD_between_Ranges(addChar("Z0000", '.', 3), addChar("Z139", '.', 3), ICDA) == 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>ICD A</b> must be <b>Well visit</b> diagnose i.e  <b>Z00 - Z13.9</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>ICD A</b> must be <b>Well visit</b> diagnose i.e  <b>Z00 - Z13.9</b> \n");
                     }
 
                     if (cPTRepository.find_CPT_between_Ranges("99381", "99397", ProcedureCode) > 0 || cPTRepository.find_CPT_between_Ranges("90460", "90461", ProcedureCode) > 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Well visit CPT/Vaccine</b> is not allowed by  <b>MEDICARE</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Well visit CPT/Vaccine</b> is not allowed by  <b>MEDICARE</b> \n");
                     }
                 }
 
@@ -1790,20 +1794,20 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 //                        || (!isEmpty(ICDJ) && ICDJ.equals("Z23"))
                 //                        || (!isEmpty(ICDK) && ICDK.equals("Z23"))
                 //                        || (!isEmpty(ICDL) && ICDL.equals("Z23")))) {
-                //                    ErrorMsgs.add("<p style=\"color:black;\"><b>Well visit Vaccine</b> should be billed with <b> Z23</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                //                    ErrorMsgs.add("<b>Well visit Vaccine</b> should be billed with <b> Z23</b>\n");
                 //                }
 
                 if ((PriFillingIndicator.equals("MA") || SecFillingIndicator.equals("MA"))
                         || ((PriFillingIndicator.equals("MB") || SecFillingIndicator.equals("MB")))) {
                     if (icodeRepository.validateI_Codes(ProcedureCode) == 1) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + ProcedureCode + "]</b>  is  <b>I HCPCS Code</b> which is not payable by <b>Medicare</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Procedure Code <b>[" + ProcedureCode + "]</b>  is  <b>I HCPCS Code</b> which is not payable by <b>Medicare</b>\n");
                     }
                 }
 
 
                 if (ReasonVisit.toUpperCase().contains("CORONA VIRUS") || ReasonVisit.toUpperCase().contains("COVID")) {
                     //                    if (!COVID_CPTS.contains(ProcedureCode) && !addCovidMsg) {
-                    //                        ErrorMsgs.add("<p style=\"color:black;\">Please Bill COVID-19 codes <b>" + COVID_CPTS.toString() + "</b>  and  create separate charge for rest of the CPT Codes<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    //                        ErrorMsgs.add("Please Bill COVID-19 codes <b>" + COVID_CPTS.toString() + "</b>  and  create separate charge for rest of the CPT Codes\n");
                     //                        addCovidMsg = true;
                     //                    }
 
@@ -1812,31 +1816,31 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     }
 
                     if (!Arrays.asList("91300", "91301", "91302", "0031A").contains(ProcedureCode) && is_91303 && !addAdminCodeMsg) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Admin Code " + Arrays.asList("91300", "91301", "91302", "0031A").toString() + " </b>  is  missing with  <b>Vaccine [91303]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Admin Code " + Arrays.asList("91300", "91301", "91302", "0031A").toString() + " </b>  is  missing with  <b>Vaccine [91303]</b>\n");
                         addAdminCodeMsg = true;
                     }
 
                     if (COVID_CPTS_TJ.contains(ProcedureCode) && !modifier.contains("TJ")) {
-                        ErrorMsgs.add("<p style=\"color:black;\">Per COVID Guidelines,  <b>Modifier : TJ </b>  is  required with CPT <b>[" + ProcedureCode + "]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("Per COVID Guidelines,  <b>Modifier : TJ </b>  is  required with CPT <b>[" + ProcedureCode + "]</b>\n");
                     }
                 }
 
 
                 if (cPTRepository.validateMammographyCPT(ProcedureCode) == 1 && (!modifier.contains("26") || isEmpty(modifier))) {
-                    if (isEmpty(claimDto.getClaimadditionalinfo().getMemmoCertAddInfo())) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>FDA Certification Number</b> is Missing with Mammography services [<b>" + ProcedureCode + "</b>] Please check the location settings and update FDA Certification Number <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (isEmpty(claim.getClaimadditionalinfo().getMemmoCertAddInfo())) {
+                        ErrorMsgs.add("<b>FDA Certification Number</b> is Missing with Mammography services [<b>" + ProcedureCode + "</b>] Please check the location settings and update FDA Certification Number \n");
                     }
                 }
 
                 if (!isEmpty(ProcedureCode) && (ProcedureCode.equals("99238") || ProcedureCode.equals("99239"))) {
                     if (!Units.equals("1")) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Unit</b> should be eq <b>required</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Unit</b> should be eq <b>required</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  \n");
                     }
                     if (!ServiceToDate.equals(ServiceFromDate)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><bSTART AND END DOS </b> should be <b>same</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<bSTART AND END DOS </b> should be <b>same</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  \n");
                     }
-                    if (isEmpty(claimDto.getClaimadditionalinfo().getHospitalizedToDateAddInfo())) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Discharge Date </b> is <b>required</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    if (isEmpty(claim.getClaimadditionalinfo().getHospitalizedToDateAddInfo())) {
+                        ErrorMsgs.add("<b>Discharge Date </b> is <b>required</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  \n");
                     }
                 }
 
@@ -1855,20 +1859,20 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 //                        || (!isEmpty(ICDL) && ICDL.startsWith("F"))
                 //                )) {
                 //                    if (isValid_E_N_M_ProceduresCodes(conn, ProcedureCode)) {
-                //                        ErrorMsgs.add("<p style=\"color:black;\"><b>Mental Disorder</b> diagnosis may not be billed with E&Ms <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                //                        ErrorMsgs.add("<b>Mental Disorder</b> diagnosis may not be billed with E&Ms \n");
                 //                    }
                 //                }
 
                 //                if (isValid_E_N_M_ProceduresCodes(conn, ProcedureCode)) {
                 //                    if (!modifier.contains("24") && !modifier.contains("25") && !modifier.contains("57")) {
-                //                        ErrorMsgs.add("<p style=\"color:black;\"><b>E&M Modifier</b> is required with E&Ms Procedures <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                //                        ErrorMsgs.add("<b>E&M Modifier</b> is required with E&Ms Procedures \n");
                 //                    }
                 //                }
 
                 //                //system.out.println("PriFillingIndicator ->> " + PriFillingIndicator);
                 if (PriFillingIndicator.equals("MA") || PriFillingIndicator.equals("MB")) {
                     if (ProcedureCodeModifier.contains(mod1) || ProcedureCodeModifier.contains(mod2) || ProcedureCodeModifier.contains(mod3) || ProcedureCodeModifier.contains(mod4)) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Procedure Code Modifier</b> for Services rendered is <b>InValid</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Procedure Code Modifier</b> for Services rendered is <b>InValid</b> \n");
                     }
                 }
 
@@ -1887,7 +1891,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 for (String CPT :
                         Charge_ProcedureCodes) {
                     if (CPT.startsWith("S")) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Procedure Code [" + CPT + "]</b> is <b>InValid</b> for <b>MEDICARE</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Procedure Code [" + CPT + "]</b> is <b>InValid</b> for <b>MEDICARE</b> \n");
                     }
                 }
             }
@@ -1909,17 +1913,17 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 )) {
                     if (Charge_ProcedureCodes.contains("G0009")) {
                         if (!containsValidRelativeAdminCode("G0009", Charge_ProcedureCodes, "Z23")) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Bill Vaccine Code : " + mcrvaccinerulecodeRepository.getRespectiveVaccineCode("G0009", "Z23").toString() + "</b>  is required to bill  <b>Relative Admin Code : [G0009]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Bill Vaccine Code : " + mcrvaccinerulecodeRepository.getRespectiveVaccineCode("G0009", "Z23").toString() + "</b>  is required to bill  <b>Relative Admin Code : [G0009]</b>\n");
                         }
                     }
                     if (Charge_ProcedureCodes.contains("G0010")) {
                         if (!containsValidRelativeAdminCode("G0010", Charge_ProcedureCodes, "Z23")) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Bill Vaccine Code : " + mcrvaccinerulecodeRepository.getRespectiveVaccineCode("G0010", "Z23").toString() + "</b>  is required to bill  <b>Relative Admin Code : [G0010]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Bill Vaccine Code : " + mcrvaccinerulecodeRepository.getRespectiveVaccineCode("G0010", "Z23").toString() + "</b>  is required to bill  <b>Relative Admin Code : [G0010]</b>\n");
                         }
                     }
                     if (Charge_ProcedureCodes.contains("G0008")) {
                         if (!containsValidRelativeAdminCode("G0008", Charge_ProcedureCodes, "Z23")) {
-                            ErrorMsgs.add("<p style=\"color:black;\"><b>Bill Vaccine Code : " + mcrvaccinerulecodeRepository.getRespectiveVaccineCode("G0008", "Z23").toString() + "</b>  is required to bill  <b>Relative Admin Code : [G0008]</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("<b>Bill Vaccine Code : " + mcrvaccinerulecodeRepository.getRespectiveVaccineCode("G0008", "Z23").toString() + "</b>  is required to bill  <b>Relative Admin Code : [G0008]</b>\n");
                         }
                     }
 
@@ -1942,15 +1946,15 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                         if (Charge_VaccineCodes.size() > 1) {
                             if (!Charge_ProcedureCodes.contains("90472")) {
                                 if ((Charge_VaccineCodes.size() - 1) == 1)
-                                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Additional Vaccine of " + (Charge_VaccineCodes.size() - 1) + "</b> Administration Code is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                    ErrorMsgs.add(" <b>Additional Vaccine of " + (Charge_VaccineCodes.size() - 1) + "</b> Administration Code is <b>Missing</b>\n");
                                 else
-                                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Additional Vaccine of " + (Charge_VaccineCodes.size() - 1) + "</b> Administration Codes are <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                    ErrorMsgs.add(" <b>Additional Vaccine of " + (Charge_VaccineCodes.size() - 1) + "</b> Administration Codes are <b>Missing</b>\n");
                             } else if (Charge_ProcedureCodes.contains("90472") && (units_Of_90472 != (Charge_VaccineCodes.size() - 1))) {
-                                ErrorMsgs.add("<p style=\"color:black;\"> <b>Units</b> of <b>90472</b> must be equal to number of additional vaccine codes<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                ErrorMsgs.add(" <b>Units</b> of <b>90472</b> must be equal to number of additional vaccine codes\n");
                             }
                         }
                     } else {
-                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Primary Vaccine admin 90471</b> is <b>Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add(" <b>Primary Vaccine admin 90471</b> is <b>Missing</b>\n");
                     }
                 }
 
@@ -1976,24 +1980,24 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                         if (Charge_VaccineCodes.size() > 1) {
                             if (!Charge_ProcedureCodes.contains("90461")) {
                                 if (Charge_VaccineCodes.size() == 1)
-                                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Vaccine Toxoid of " + Charge_VaccineCodes.size() + "</b> Administration Code is missing<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                    ErrorMsgs.add(" <b>Vaccine Toxoid of " + Charge_VaccineCodes.size() + "</b> Administration Code is missing\n");
                                 else
-                                    ErrorMsgs.add("<p style=\"color:black;\"> <b>Vaccine Toxoid of " + Charge_VaccineCodes.size() + "</b> Administration Codes are missing<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                    ErrorMsgs.add(" <b>Vaccine Toxoid of " + Charge_VaccineCodes.size() + "</b> Administration Codes are missing\n");
                             } else if (Charge_ProcedureCodes.contains("90461") && (units_Of_90461 != sum_Of_units_Of_allVaccines)) {
-                                ErrorMsgs.add("<p style=\"color:black;\"> <b>Units</b> of <b>90461</b> must be equal to number of additional vaccine codes<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                ErrorMsgs.add(" <b>Units</b> of <b>90461</b> must be equal to number of additional vaccine codes\n");
                             }
                         }
 
 
                         if (units_Of_90460 != Charge_VaccineCodes.size()) {
-                            ErrorMsgs.add("<p style=\"color:black;\"> <b>Units</b> of <b>90460</b> must be equal to number of additional vaccine codes<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add(" <b>Units</b> of <b>90460</b> must be equal to number of additional vaccine codes\n");
                         }
 
                         if ((getAge(LocalDate.parse(_DOB)) > 18)) {
-                            ErrorMsgs.add("<p style=\"color:black;\"> <b>Age</b> of patient must be less then or equal to <b> 18 Yrs </b> for <b>90460</b> & <b>90461</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add(" <b>Age</b> of patient must be less then or equal to <b> 18 Yrs </b> for <b>90460</b> & <b>90461</b>\n");
                         }
                     } else {
-                        ErrorMsgs.add("<p style=\"color:black;\"> <b>Primary Vaccine admin 90460</b> is <b> Missing</b><span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add(" <b>Primary Vaccine admin 90460</b> is <b> Missing</b>\n");
                     }
                 }
             }
@@ -2012,18 +2016,18 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
                 if (vaccGrp1 != null && vaccGrp2 != null) {
-                    ErrorMsgs.add("<p style=\"color:black;\">System identifies medicare and commercial vaccine admins <b>[" + vaccGrp1 + "]</b> & <b>[" + vaccGrp2 + "]</b> alongside which is incorrect by coding point of view. please review coding before filing the claim<span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("System identifies medicare and commercial vaccine admins <b>[" + vaccGrp1 + "]</b> & <b>[" + vaccGrp2 + "]</b> alongside which is incorrect by coding point of view. please review coding before filing the claim\n");
                     break;
                 }
 
                 if (!findAddOnCode(CPT, Charge_ProcedureCodes)) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Add On Code <b>[" + CPT + "]</b> cannot be billed without Primary Codes <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Add On Code <b>[" + CPT + "]</b> cannot be billed without Primary Codes \n");
                 }
 
                 r = isNotAllowed_NCCI(CPT, Charge_ProcedureCodes);
                 result = r == null ? null : r.split("~");
                 if (result != null) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + result[0] + "]</b> is <b>not allowed</b> with <b>[" + result[1] + "]</b> in the Billing Guideline CCI. <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Procedure Code <b>[" + result[0] + "]</b> is <b>not allowed</b> with <b>[" + result[1] + "]</b> in the Billing Guideline CCI. \n");
                 }
             }
 
@@ -2031,14 +2035,14 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 for (String ICD :
                         ICDs) {
                     if (genderspecificdiagnosisRepository.validateGenderICDs(ICD.replace(".", ""), "Male") > 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Male ICD [" + ICD + "]</b> cannot be applied to <b>Female</b> Patient <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Male ICD [" + ICD + "]</b> cannot be applied to <b>Female</b> Patient \n");
                     }
                 }
 
                 for (String CPT :
                         Charge_ProcedureCodes) {
                     if (genderspecificcptIcdRepository.validateGenderCPTs(CPT, "MALE") > 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Male Procedure [" + CPT + "]</b> cannot be applied to <b>Female</b> Patient <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Male Procedure [" + CPT + "]</b> cannot be applied to <b>Female</b> Patient \n");
                     }
                 }
 
@@ -2047,14 +2051,14 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 for (String ICD :
                         ICDs) {
                     if (genderspecificdiagnosisRepository.validateGenderICDs(ICD.replace(".", ""), "Female") > 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Female ICD [" + ICD + "]</b> cannot be applied to <b>Male</b> Patient  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Female ICD [" + ICD + "]</b> cannot be applied to <b>Male</b> Patient  \n");
                     }
                 }
 
                 for (String CPT :
                         Charge_ProcedureCodes) {
                     if (genderspecificcptIcdRepository.validateGenderCPTs(CPT, "FEMALE") > 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Female Procedure [" + CPT + "]</b> cannot be applied to <b>Male</b> Patient <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Female Procedure [" + CPT + "]</b> cannot be applied to <b>Male</b> Patient \n");
                     }
                 }
 
@@ -2063,7 +2067,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             for (String ICD :
                     ICDs) {
                 if (!validAgeICDs(ICD, getAge(LocalDate.parse(_DOB)))) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b> ICD [" + ICD + "]</b> cannot be applied to <b>Age : " + getAge(LocalDate.parse(_DOB)) + "</b>  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b> ICD [" + ICD + "]</b> cannot be applied to <b>Age : " + getAge(LocalDate.parse(_DOB)) + "</b>  \n");
                 }
             }
 
@@ -2074,7 +2078,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                     r = NCD_CPT_ICD_Denial(CPT, ICD);
                     result = r == null ? null : r.split("~");
                     if (result != null) {
-                        ErrorMsgs.add("<p style=\"color:black;\">ICD <b>[" + result[0] + "]</b> is <b>Denied</b> with Procedure <b>[" + result[1] + "]</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("ICD <b>[" + result[0] + "]</b> is <b>Denied</b> with Procedure <b>[" + result[1] + "]</b> \n");
                     }
 
 
@@ -2082,7 +2086,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 //                    //system.out.println("r ** "+r);
                     result = r == null ? null : r.split("~");
                     if (result != null) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b>Medical Neccesity </b> is <b>required</b> when ICD <b>[" + result[0] + "]</b> is billed with Procedure <b>[" + result[1] + "]</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b>Medical Neccesity </b> is <b>required</b> when ICD <b>[" + result[0] + "]</b> is billed with Procedure <b>[" + result[1] + "]</b> \n");
                     }
 
 
@@ -2101,12 +2105,12 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                         //system.out.println("LCD_CPT_ICD_Denial ** " + r);
                         result = r == null ? null : r.split("~");
                         if (result != null) {
-                            ErrorMsgs.add("<p style=\"color:black;\">Per <b>LCD</b> Articles , ICD <b>[" + result[0] + "]</b> is <b>Denied</b> with Procedure <b>[" + result[1] + "]</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                            ErrorMsgs.add("Per <b>LCD</b> Articles , ICD <b>[" + result[0] + "]</b> is <b>Denied</b> with Procedure <b>[" + result[1] + "]</b> \n");
                         }
 
                         if ((PriFillingIndicator.equals("CI") || SecFillingIndicator.equals("CI"))) {
                             if (cPTRepository.find_CPT_between_Ranges("99201", "99215", CPT) > 0 && iCDRepository.find_ICD_between_Ranges("Z0000", "Z139", ICD) == 0) {
-                                ErrorMsgs.add("<p style=\"color:black;\"><b>Well visit ICD : [" + ICD + "]</b> is not allowed with  <b>Procedure : [" + CPT + "]</b> <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                                ErrorMsgs.add("<b>Well visit ICD : [" + ICD + "]</b> is not allowed with  <b>Procedure : [" + CPT + "]</b> \n");
                             }
                         }
 
@@ -2121,19 +2125,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 //                    r = LCD_CPT_ICD_MUST(conn, CPT, ICDs);
 //                    //system.out.println("LCD_CPT_ICD_MUST ** " + r);
 //                    if (r != null) {
-//                        ErrorMsgs.add("<p style=\"color:black;\">Per <b>LCD</b> Articles , Supporting ICD for  Procedure <b>[" + r + "]</b> is <b>missing</b>  <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+//                        ErrorMsgs.add("Per <b>LCD</b> Articles , Supporting ICD for  Procedure <b>[" + r + "]</b> is <b>missing</b>  \n");
 //                    }
 //                }
             }
 
             if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getPayerID().equals("87726") || PrimaryinsuranceDetailsById.getPayerID().equals("39026") || PrimaryinsuranceDetailsById.getPayerID().equals("13551") || PrimaryinsuranceDetailsById.getPayerID().equals("61101"))) {
                 if (iCDRepository.validateSequelaCode(ICDA) > 0) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b> SEQUELA ICD : [" + ICDA + "] </b> Can’t Be Billed As The Primary, First Listed, Or Principal Diagnosis On A Claim, Nor Can It Be The Only Diagnosis On A Claim, Please Check Coding Before Billing Out The Claim <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b> SEQUELA ICD : [" + ICDA + "] </b> Can’t Be Billed As The Primary, First Listed, Or Principal Diagnosis On A Claim, Nor Can It Be The Only Diagnosis On A Claim, Please Check Coding Before Billing Out The Claim \n");
                 }
             } else if (ICDs.size() == 1) {
                 if (!isEmpty(PrimaryinsuranceDetailsById.getPayerID()) && (PrimaryinsuranceDetailsById.getPayerID().equals("87726") || PrimaryinsuranceDetailsById.getPayerID().equals("39026") || PrimaryinsuranceDetailsById.getPayerID().equals("13551") || PrimaryinsuranceDetailsById.getPayerID().equals("61101"))) {
                     if (iCDRepository.validateSequelaCode(ICDs.get(0)) > 0) {
-                        ErrorMsgs.add("<p style=\"color:black;\"><b> SEQUELA ICD : [" + ICDs.get(0) + "] </b> Can’t Be Billed As The Primary, First Listed, Or Principal Diagnosis On A Claim, Nor Can It Be The Only Diagnosis On A Claim, Please Check Coding Before Billing Out The Claim <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                        ErrorMsgs.add("<b> SEQUELA ICD : [" + ICDs.get(0) + "] </b> Can’t Be Billed As The Primary, First Listed, Or Principal Diagnosis On A Claim, Nor Can It Be The Only Diagnosis On A Claim, Please Check Coding Before Billing Out The Claim \n");
                     }
                 }
             }
@@ -2149,7 +2153,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
 //                //system.out.println("ICD -->> "+ICD);
                 if (iCDRepository.find_ICD_between_Ranges("Z01810", "Z01818", ICD) > 0) {
-                    ErrorMsgs.add("<p style=\"color:black;\"><b> ICD [" + ICD + "]</b> may only be used at <b>Primary</b> Diagnosis Position <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("<b> ICD [" + ICD + "]</b> may only be used at <b>Primary</b> Diagnosis Position \n");
                     break;
                 }
 
@@ -2162,14 +2166,14 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 r = Mod_Is_MUST_NCCI(CPT, Charge_ProcedureCodes_WITHOUT_MODIFIER);
                 result = r == null ? null : r.split("~");
                 if (result != null) {
-                    ErrorMsgs.add("<p style=\"color:black;\">Procedure Code <b>[" + result[0] + "]</b> is <b>inconsistent</b> with <b>[" + result[1] + "]</b> in the Billing Guideline CCI Modifier is allowed but not found <span> <i class=\"fa fa-times-circle-o\" style=\"color: red;font-size: 20px;\"></i></span></p>\n");
+                    ErrorMsgs.add("Procedure Code <b>[" + result[0] + "]</b> is <b>inconsistent</b> with <b>[" + result[1] + "]</b> in the Billing Guideline CCI Modifier is allowed but not found \n");
                 }
 
             }
 
             ErrorMsgs.replaceAll(s -> s.replace("\n", "").replace("\r", "").replaceAll(" +", " "));
 
-            List<String> removedErrors = claimAudittrailRepository.findByClaimNoAAndAction(claimDto.getClaimNumber());
+            List<String> removedErrors = claimAudittrailRepository.findByClaimNoAndAction_NQ(claim.getClaimNumber(),"REMOVED");
 
             for (String e :
                     removedErrors) {
@@ -2183,6 +2187,21 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
             }
+
+
+            claimAudittrailRepository.deleteClaimAudittrailByClaimNoAndAction(claim.getClaimNumber(),"FIRED");
+            Integer id = -1;
+            for (String error:
+                 ErrorMsgs) {
+                ScrubberRulesDto scrubberRulesDto = new ScrubberRulesDto();
+                id = insertClaimAuditTrails(claim,error,"FIRED").getId();
+                scrubberRulesDto.setId(id);
+                scrubberRulesDto.setDescription(error);
+                rulesList.add(scrubberRulesDto);
+            }
+
+
+
 
             Instant end = Instant.now();
             Duration ExecutionTime = Duration.between(start, end);
@@ -2201,7 +2220,19 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         }
 
 
-        return ErrorMsgs;
+        return rulesList;
+    }
+
+    private ClaimAudittrail insertClaimAuditTrails(Claiminfomaster claim, String description, String action) {
+      return   claimAudittrailService.createAuditTrail(ClaimAudittrail.builder()
+                .claimNo(claim.getClaimNumber())
+                .claimType(String.valueOf(claim.getClaimType() == null ? 1 : claim.getClaimType()))
+                .userID(claim.getCreatedBy())
+                .userIP(claim.getCreatedIP())
+                .clientID(String.valueOf(claim.getClientId()))
+                .userIP(claim.getCreatedIP())
+                .action(action)
+                .ruleText(description).build());
     }
 
     private String Mod_Is_MUST_NCCI(String cpt, ArrayList<String> charge_procedureCodes) {
@@ -2386,7 +2417,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
 
     private boolean isBMI_ICD(final String Code) {
-        return iCDRepository.validateBMIICD(Code) > 1;
+        return iCDRepository.validateBMIICD(Code) > 0;
     }
 
     public boolean isInValidDate(final String date, final String ClaimCreateDate) {

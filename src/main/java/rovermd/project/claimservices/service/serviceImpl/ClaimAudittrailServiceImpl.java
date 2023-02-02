@@ -33,6 +33,7 @@ public class ClaimAudittrailServiceImpl implements ClaimAudittrailService {
         return claimAudittrailList.stream().map(this::claimToDto).collect(Collectors.toList());
     }
 
+
     private ClaimAudittrailDto claimToDto(ClaimAudittrail claimAudittrail) {
         return modelMapper.map(claimAudittrail, ClaimAudittrailDto.class);
     }

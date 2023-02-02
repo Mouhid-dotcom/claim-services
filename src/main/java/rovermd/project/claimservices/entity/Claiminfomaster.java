@@ -263,6 +263,7 @@ public class Claiminfomaster implements Serializable {
 
 
 
+
     //    @OneToMany(fetch = FetchType.LAZY)
     @OneToMany(targetEntity = Claimchargesinfo.class, cascade = CascadeType.ALL)
 //    @JoinColumn(name = "ClaimInfoMasterId",referencedColumnName = "id")
@@ -355,6 +356,9 @@ public class Claiminfomaster implements Serializable {
             @JoinColumn(name = "ClaimNumber", referencedColumnName = "ClaimNumber", updatable = false)
     })
     List<Claiminfocodeconditioncode> claiminfocodeconditioncode;
+
+    @Column(name = "scrubbed")
+    private Integer scrubbed;
 
     @PrePersist
     public void created() {

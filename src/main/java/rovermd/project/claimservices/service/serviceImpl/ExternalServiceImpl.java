@@ -8,11 +8,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import rovermd.project.claimservices.dto.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
-import rovermd.project.claimservices.service.MasterDefService;
+import rovermd.project.claimservices.service.ExternalService;
 
 
 @Service
-public class MasterDefServiceImpl implements MasterDefService {
+public class ExternalServiceImpl implements ExternalService {
 
 //    Long tenantId=TenantContext.getCurrentTenant();
 

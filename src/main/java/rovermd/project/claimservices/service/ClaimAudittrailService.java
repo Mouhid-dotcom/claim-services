@@ -10,6 +10,5 @@ public interface ClaimAudittrailService {
 
     List<ClaimAudittrailDto> findAllByClaimNumber(String ClaimNumber);
 
-
 }
 

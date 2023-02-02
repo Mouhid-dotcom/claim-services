@@ -1,15 +1,13 @@
 package rovermd.project.claimservices.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import rovermd.project.claimservices.dto.ClaimAudittrailDto;
 import rovermd.project.claimservices.dto.ClaimInfoMaster_List;
-import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
-import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
-import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 
@@ -24,9 +22,14 @@ public class ClaimController {
     @Autowired
     private ClaimAudittrailService claimAudittrailService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<ClaimInfoMaster_List>> getAllClaims() {
-        return ResponseEntity.ok(this.claimService.getAllClaims());
+    @GetMapping(value = { "/", "/{keyWord}" })
+    public ResponseEntity<List<ClaimInfoMaster_List>> getAllClaims(@PathVariable(required = false) String keyWord) {
+        return ResponseEntity.ok(this.claimService.getAllClaims(keyWord));
+    }
+
+    @GetMapping(value ={"/patRegID/{patRegID}/visitID/{visitID}","visitID/{visitID}/patRegID/{patRegID}/","/patRegID/{patRegID}","visitID/{visitID}"})
+    public ResponseEntity<List<ClaimInfoMaster_List>> getAllClaims(@PathVariable(required = false) Integer patRegID,@PathVariable(required = false) Integer visitID) {
+        return ResponseEntity.ok(this.claimService.getAllClaimsByPatRegIDAndVisitId(patRegID,visitID));
     }
 
     @GetMapping("auditTrails/{claimNumber}")
