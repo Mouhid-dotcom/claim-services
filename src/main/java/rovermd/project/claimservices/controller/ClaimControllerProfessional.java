@@ -5,12 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rovermd.project.claimservices.dto.ClaimInfoMaster_List;
-import rovermd.project.claimservices.dto.ScrubberRulesDto;
 import rovermd.project.claimservices.dto.SuccessMsg;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
+import rovermd.project.claimservices.entity.Claiminfomaster;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
 
@@ -46,11 +45,11 @@ public class ClaimControllerProfessional {
         return ResponseEntity.ok(claimService.copyClaim(claimId));
     }
 
-//    @PostMapping("/scrubber")
-//    public ResponseEntity<List<ScrubberRulesDto>> scrubber(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
-//        List<ScrubberRulesDto> res = claimServiceSrubber.scrubber(claimDTO);
-//        return new ResponseEntity<>(res, HttpStatus.OK);
-//    }
+    @PostMapping("/scrubber")
+    public ResponseEntity<List<?>> scrubber(@RequestBody Claiminfomaster claim) {
+        List<?> res = claimServiceSrubber.scrubberProf(claim);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
 
 
 }

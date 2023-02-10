@@ -29,6 +29,6 @@ public class Ncdxcptxicd {
 
     @Size(max = 255)
     @Column(name = "ResCode")
-    private String resCode;
+    private Integer resCode;
 
 }

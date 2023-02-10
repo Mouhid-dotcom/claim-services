@@ -15,4 +15,8 @@ public interface RevenueCodeRepository extends JpaRepository<RevenueCode,Long> {
     List<RevenueCode> searchByLike(@Param("txt") String txt);
 
     List<RevenueCode> findRevenueCodeByRevCode(String code);
+
+    @Query("SELECT Count(*) FROM RevenueCode where  revCode=:revCode")
+    Integer validateRevCode(@Param("revCode") String revCode);
+
 }

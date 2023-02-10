@@ -27,4 +27,7 @@ public interface ICDRepository extends JpaRepository<ICD, Long> {
     @Query("SELECT Count(*) FROM ICD where ICD BETWEEN :r1 AND :r2  AND ICD=:icd")
     Integer find_ICD_between_Ranges(@Param("r1") String r1,@Param("r2") String r2,@Param("icd") String icd);
 
+
+    @Query("SELECT Count(*) FROM ICD where  ICD=:icd")
+    Integer validateICD(@Param("icd") String icd);
 }

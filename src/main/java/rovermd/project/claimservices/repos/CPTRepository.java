@@ -23,4 +23,7 @@ public interface CPTRepository extends JpaRepository<CPT, Long> {
     @Query("SELECT Count(*) FROM CPT where (CPTCode BETWEEN '99201' AND '99357' OR  CPTCode BETWEEN '92002' AND '92014')  AND CPTCode=:code")
     Integer validateMammographyCPT(@Param("code") String code);
 
+    @Query("SELECT Count(*) FROM CPT where  CPTCode=:code")
+    Integer validateCPT(@Param("code") String code);
+
 }

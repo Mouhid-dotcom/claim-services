@@ -42,6 +42,6 @@ public interface NcdCptGroupRepository extends JpaRepository<NcdCptGroup, Intege
             " WHERE  " +
             " a.cpt = :cpt " +
             " AND b.resCode = :resCode " +
-            " AND b.icd NOT LIKE '%-%' ")
+            " AND b.icd LIKE '%-%' ")
     List<String> getNcdCptGroupXNcdxcptxicd(@Param("cpt") String cpt, @Param("resCode") int resCode);
 }

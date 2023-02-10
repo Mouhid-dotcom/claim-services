@@ -9,8 +9,10 @@ import rovermd.project.claimservices.dto.ClaimAudittrailDto;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterProfDto_CopyClaim;
 import rovermd.project.claimservices.dto.institutional.ClaiminfomasterInstDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
+import rovermd.project.claimservices.entity.Claiminfomaster;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceInstitutional;
+import rovermd.project.claimservices.service.ClaimServiceSrubber;
 
 import java.util.List;
 
@@ -20,7 +22,8 @@ public class ClaimControllerInstitutional {
     @Autowired
     private ClaimServiceInstitutional claimService;
 
-
+    @Autowired
+    private ClaimServiceSrubber claimServiceSrubber;
 
     @PostMapping
     public ResponseEntity<ClaiminfomasterInstDto> createClaim(@RequestBody ClaiminfomasterInstDto claimDTO, HttpServletRequest request) {
@@ -44,7 +47,11 @@ public class ClaimControllerInstitutional {
         return ResponseEntity.ok(claimService.copyClaim(claimId));
     }
 
-
+    @PostMapping("/scrubber")
+    public ResponseEntity<List<?>> scrubber(@RequestBody Claiminfomaster claim) {
+        List<?> res = claimServiceSrubber.scrubberInst(claim);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
 
 
 }

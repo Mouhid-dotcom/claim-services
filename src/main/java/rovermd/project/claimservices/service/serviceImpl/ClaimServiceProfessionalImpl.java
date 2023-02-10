@@ -471,7 +471,7 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
 
             }
 
-            List<ScrubberRulesDto> scrubber = claimServiceSrubber.scrubber(claim);
+            List<?> scrubber = claimServiceSrubber.scrubberProf(claim);
 
             if (scrubber.size() > 0) {
                 claim.setScrubbed(1);
@@ -715,7 +715,7 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
                 .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
                 .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
 
-        List<ScrubberRulesDto> scrubber = claimServiceSrubber.scrubber(claim);
+        List<?> scrubber = claimServiceSrubber.scrubberProf(claim);
 
         if (scrubber.size() > 0) {
             claim.setScrubbed(1);

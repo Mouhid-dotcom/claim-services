@@ -18,6 +18,7 @@ public class ExternalServiceImpl implements ExternalService {
 
     WebClient webClient = WebClient.create("http://192.168.210.9:8080/api/");
     WebClient webClient2 = WebClient.create("http://192.168.210.9:7778/scrubber/");
+    WebClient webClient3 = WebClient.create("http://192.168.210.9:7777/api/");
 
 
 
@@ -26,7 +27,7 @@ public class ExternalServiceImpl implements ExternalService {
 
         InsuranceDTO ins = webClient.get()
                 .uri("professionalpayer/find/" + insId)
-                .header("X-TenantID", "8")//String.valueOf(TenantContext.getCurrentTenant()))
+                .header("X-TenantID", "6")//String.valueOf(TenantContext.getCurrentTenant()))
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Insurance","InsuranceID", insId == null ? null : Long.valueOf(insId))))
                 .bodyToMono(InsuranceDTO.class).block();
@@ -40,7 +41,7 @@ public class ExternalServiceImpl implements ExternalService {
     public DoctorDTO getDoctorDetailsById(long docId) {
         return webClient.get()
                 .uri("doctor/find/" + docId)
-                .header("X-TenantID", "8")//String.valueOf(TenantContext.getCurrentTenant()))
+                .header("X-TenantID", "6")//String.valueOf(TenantContext.getCurrentTenant()))
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Doctor","DoctorID", docId)))
                 .bodyToMono(DoctorDTO.class).block();
@@ -54,6 +55,16 @@ public class ExternalServiceImpl implements ExternalService {
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Patient","PatientRegID", patreqDto.getPatientRegId())))
                 .bodyToMono(PatientDto.class).block();
+    }
+
+    @Override
+    public ClientDTO getClientDetailsById(long id) {
+        return webClient3.get()
+                .uri("facility/info/" + id)
+                .header("X-TenantID", "6")//String.valueOf(TenantContext.getCurrentTenant()))
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Client","ClientID", id)))
+                .bodyToMono(ClientDTO.class).block();
     }
 
 

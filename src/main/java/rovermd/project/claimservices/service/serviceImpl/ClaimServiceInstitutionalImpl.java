@@ -6,6 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rovermd.project.claimservices.dto.ScrubberRulesDto;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterProfDto_CopyClaim;
 import rovermd.project.claimservices.dto.institutional.*;
@@ -15,8 +16,10 @@ import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.*;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceInstitutional;
+import rovermd.project.claimservices.service.ClaimServiceSrubber;
 import rovermd.project.claimservices.service.ExternalService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -52,9 +55,17 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
     @Autowired
     private ExternalService masterDefService;
 
+    @Autowired
+    private ClaimServiceSrubber claimServiceSrubber;
+
+    @Autowired
+    private ClaimAudittrailRepository claimAudittrailRepository;
+
 
     @Override
     public ClaiminfomasterInstDto_ViewSingleClaim getClaimById(Integer claimId) {
+        System.out.println("HERE");
+
         ObjectNode cptCodeAndDescription = null;
         ObjectNode modCodeAndDescription = null;
         ObjectNode StatusCodeAndDescription = null;
@@ -71,15 +82,21 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         ClaiminfomasterInstDto_ViewSingleClaim claiminfomasterInstDto_viewSingleClaim = null;
 
         Claiminfomaster claim = claimRepo.findById(claimId).orElse(new Claiminfomaster());
+        System.out.println("HERE");
+
+        List<ScrubberRulesDto> rulesList = new ArrayList<>();
 
 //        System.out.println(claim);
         if (claim.getClaimchargesinfo() == null) {
+            System.out.println("IF");
+
             String claimNumber = claimRepo.getNewClaimNumber();
             claim.setClaimNumber("CI-" + claimNumber);
             //need to have patient Name , MRN , acct-no , phNumber , email, address , dos ,  physicianIdx wrt to visit
             // primary insurance name , primary memberId , primary grp Number , patients relationship to primary
             // secondary insurance name , secondary memberId , secondary grp Number , patients relationship to secondary
         } else {
+            System.out.println("HERE");
 
             claim = filterChargesWrtStatus(claim);
 
@@ -219,6 +236,17 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                 }
             }
 
+            if (claim.getScrubbed() == 1) {
+                List<ClaimAudittrail> fired = claimAudittrailRepository.findByClaimNoAndAction(claim.getClaimNumber(), "FIRED");
+                for (ClaimAudittrail error :
+                        fired) {
+                    ScrubberRulesDto scrubberRulesDto = new ScrubberRulesDto();
+                    scrubberRulesDto.setId(error.getId());
+                    scrubberRulesDto.setDescription(error.getRuleText());
+                    rulesList.add(scrubberRulesDto);
+                }
+                claiminfomasterInstDto_viewSingleClaim.setScrubber(rulesList);
+            }
 
             claimAudittrailService.createAuditTrail(ClaimAudittrail.builder()
                     .claimNo(claim.getClaimNumber())
@@ -617,6 +645,14 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
             }
 
+            List<?> scrubber = claimServiceSrubber.scrubberInst(claim);
+
+            if (scrubber.size() > 0) {
+                claim.setScrubbed(1);
+            } else {
+                claim.setScrubbed(0);
+            }
+
             save = claimRepo.save(claim);
             insertClaimAuditTrails(claim,
                     "CLAIM SAVED",
@@ -813,6 +849,13 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                 .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
                 .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
 
+        List<?> scrubber = claimServiceSrubber.scrubberInst(claim);
+
+        if (scrubber.size() > 0) {
+            claim.setScrubbed(1);
+        } else {
+            claim.setScrubbed(0);
+        }
 
         Claiminfomaster save = claimRepo.save(claim);
 
