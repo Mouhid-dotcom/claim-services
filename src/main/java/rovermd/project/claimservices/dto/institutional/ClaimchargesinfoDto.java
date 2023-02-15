@@ -30,7 +30,7 @@ public class ClaimchargesinfoDto {
     private String revCode;
     private BigDecimal unitPrice;
     private BigDecimal units;
-    private BigDecimal amount;
+    private Double amount;
     private Integer status;
     @Size(max = 255)
     private String chargesStatus;

@@ -19,6 +19,7 @@ public class ExternalServiceImpl implements ExternalService {
     WebClient webClient = WebClient.create("http://192.168.210.9:8080/api/");
     WebClient webClient2 = WebClient.create("http://192.168.210.9:7778/scrubber/");
     WebClient webClient3 = WebClient.create("http://192.168.210.9:7777/api/");
+    WebClient webClient4 = WebClient.create("http://192.168.210.9:7788/api/");
 
 
 
@@ -65,6 +66,16 @@ public class ExternalServiceImpl implements ExternalService {
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Client","ClientID", id)))
                 .bodyToMono(ClientDTO.class).block();
+    }
+
+    @Override
+    public CompanyDTO getCompanyDetailsById(long id) {
+        return webClient4.get()
+                .uri("company/credential/find/" + id)
+                .header("X-TenantID", "6")//String.valueOf(TenantContext.getCurrentTenant()))
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Company Credentials","Company ID", id)))
+                .bodyToMono(CompanyDTO.class).block();
     }
 
 

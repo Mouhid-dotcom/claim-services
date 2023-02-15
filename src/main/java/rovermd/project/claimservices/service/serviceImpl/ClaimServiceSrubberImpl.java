@@ -26,6 +26,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static rovermd.project.claimservices.util.UtilityHelper.isEmpty;
+import static rovermd.project.claimservices.util.UtilityHelper.isInValidDate;
+
 @Service
 public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
@@ -132,10 +135,15 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
     @Transactional
     @Override
-    public List<?> scrubberProf(Claiminfomaster claim) {
+    public List<?> scrubberProf(Claiminfomaster claim, int... changeDetected) {
         Instant start = Instant.now();
         List<ScrubberRulesDto> rulesList = new ArrayList<>();
+        List<String> ErrorMsgs = new ArrayList<>();
 
+        if (changeDetected.length==0 || changeDetected[0] == 0) {
+            rulesList = gettingRulesFormatted(claim, rulesList, ErrorMsgs);
+            if (rulesList.size() > 0) return rulesList;
+        }
 
         String ReasonVisit = "";
         String PatientFirstName = "";
@@ -258,7 +266,6 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         List<String> Taxonomy_for_InitialTreatment_List = Arrays.asList(Taxonomy_for_InitialTreatment);
 
         ArrayList<String> ICDs = new ArrayList<>();
-        List<String> ErrorMsgs = new ArrayList<>();
 
         try {
             if (!isEmpty(claim.getClientId())) {
@@ -466,7 +473,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
         if (!isEmpty(DOB) && !isEmpty(DOS)) {
             if (isInValidDate(DOB, DOS)) {
-                ErrorMsgs.add("DOS cannot be prior to the DOB correction is required \n");
+                ErrorMsgs.add("DOS cannot be prior to the DOB, correction is required");
             }
         }
 
@@ -1127,14 +1134,11 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                 if (!isEmpty(ProcedureCode)) {
                     if (cPTRepository.validateCPT(ProcedureCode) == 0) {
-                        ErrorMsgs.add("<b>Procedure ["+ProcedureCode+"]</b> USED DOESNOT MATCH WITH American Medical Association (AMA). PLEASE USE THIS LINK FOR CORRECT Procedure CODE: https://www.cms.gov/medicare/fraud-and-abuse/physicianselfreferral/list_of_codes\n");
+                        ErrorMsgs.add("<b>Procedure [" + ProcedureCode + "]</b> USED DOESNOT MATCH WITH American Medical Association (AMA). PLEASE USE THIS LINK FOR CORRECT Procedure CODE: https://www.cms.gov/medicare/fraud-and-abuse/physicianselfreferral/list_of_codes\n");
                     }
                 } else {
                     ErrorMsgs.add("<b>Procedure</b> is Missing. It cannot be null or empty\n");
                 }
-
-
-
 
 
                 if (enmprocedureRepository.validateE_N_M_ProceduresCodes(ProcedureCode) == 1) {//isValid_E_N_M_ProceduresCodes(conn, ProcedureCode)) {
@@ -2300,34 +2304,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
             }
 
-            ErrorMsgs.replaceAll(s -> s.replace("\n", "").replace("\r", "").replaceAll(" +", " "));
-
-            List<String> removedErrors = claimAudittrailRepository.findByClaimNoAndAction_NQ(claim.getClaimNumber(), "REMOVED");
-
-            for (String e :
-                    removedErrors) {
-
-                for (String errorMsg :
-                        ErrorMsgs) {//O(n^2)
-                    if (errorMsg.equals(e)) {
-                        ErrorMsgs.remove(e);
-                        break;
-                    }
-                }
-
-            }
-
-
-            claimAudittrailRepository.deleteClaimAudittrailByClaimNoAndAction(claim.getClaimNumber(), "FIRED");
-            Integer id = -1;
-            for (String error :
-                    ErrorMsgs) {
-                ScrubberRulesDto scrubberRulesDto = new ScrubberRulesDto();
-                id = insertClaimAuditTrails(claim, error, "FIRED").getId();
-                scrubberRulesDto.setId(id);
-                scrubberRulesDto.setDescription(error);
-                rulesList.add(scrubberRulesDto);
-            }
+            rulesList = gettingRulesFormatted(claim, rulesList, ErrorMsgs);
 
 
             Instant end = Instant.now();
@@ -2350,12 +2327,61 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         return rulesList;
     }
 
+    public List<ScrubberRulesDto> gettingRulesFormatted(Claiminfomaster claim, List<ScrubberRulesDto> rulesList, List<String> ErrorMsgs) {
+        if (ErrorMsgs.size() == 0) {
+            List<ClaimAudittrail> rules = claimAudittrailRepository.findByClaimNoAndAction(claim.getClaimNumber(), "FIRED");
+            for (ClaimAudittrail rule :
+                    rules) {
+                ScrubberRulesDto scrubberRulesDto = new ScrubberRulesDto();
+                scrubberRulesDto.setId(rule.getId());
+                scrubberRulesDto.setDescription(rule.getRuleText());
+                rulesList.add(scrubberRulesDto);
+            }
+            return rulesList;
+        }
+        ErrorMsgs.replaceAll(s -> s.replace("\n", "").replace("\r", "").replaceAll(" +", " "));
+
+        List<String> removedErrors = claimAudittrailRepository.findByClaimNoAndAction_NQ(claim.getClaimNumber(), "REMOVED");
+
+        for (String e :
+                removedErrors) {
+
+            for (String errorMsg :
+                    ErrorMsgs) {//O(n^2)
+                if (errorMsg.equals(e)) {
+                    ErrorMsgs.remove(e);
+                    break;
+                }
+            }
+
+        }
+
+
+        claimAudittrailRepository.deleteClaimAudittrailByClaimNoAndAction(claim.getClaimNumber(), "FIRED");
+
+        for (String error :
+                ErrorMsgs) {
+            ScrubberRulesDto scrubberRulesDto = new ScrubberRulesDto();
+            scrubberRulesDto.setId(insertClaimAuditTrails(claim, error, "FIRED").getId());
+            scrubberRulesDto.setDescription(error);
+            rulesList.add(scrubberRulesDto);
+        }
+
+        return rulesList;
+    }
+
     @Transactional
     @Override
-    public List<?> scrubberInst(Claiminfomaster claim) {
+    public List<?> scrubberInst(Claiminfomaster claim, int... changeDetected) {
         Instant start = Instant.now();
         List<ScrubberRulesDto> rulesList = new ArrayList<>();
+        List<String> ErrorMsgs = new ArrayList<>();
 
+
+        if (changeDetected.length==0 || changeDetected[0] == 0) {
+            rulesList = gettingRulesFormatted(claim, rulesList, ErrorMsgs);
+            if (rulesList.size() > 0) return rulesList;
+        }
 
         String ReasonVisit = "";
         String PatientFirstName = "";
@@ -2460,18 +2486,17 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         List<String> Taxonomy_for_InitialTreatment_List = Arrays.asList(Taxonomy_for_InitialTreatment);
 
         ArrayList<String> ICDs = new ArrayList<>();
-        List<String> ErrorMsgs = new ArrayList<>();
 
 
         if (!isEmpty(claim.getClaiminformationcode().getPrincipalDiagInfoCodes())) {
             if (iCDRepository.validateICD(claim.getClaiminformationcode().getPrincipalDiagInfoCodes()) == 0) {
-                ErrorMsgs.add("<b>Principal Diagnosis</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10\n");
+                ErrorMsgs.add("<b>Principal Diagnosis</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10\n~" + claim.getClaiminformationcode().getPrincipalDiagInfoCodes());
             }
             ICDs.add(claim.getClaiminformationcode().getPrincipalDiagInfoCodes());
         }
         if (!isEmpty(claim.getClaiminformationcode().getAdmittingDiagInfoCodes())) {
             if (iCDRepository.validateICD(claim.getClaiminformationcode().getAdmittingDiagInfoCodes()) == 0) {
-                ErrorMsgs.add("<b>Admitting Diagnosis</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10\n");
+                ErrorMsgs.add("<b>Admitting Diagnosis</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10\n~" + claim.getClaiminformationcode().getAdmittingDiagInfoCodes());
             }
             ICDs.add(claim.getClaiminformationcode().getAdmittingDiagInfoCodes());
         }
@@ -2479,21 +2504,21 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         claim.getClaiminfocodeextcauseinj().stream().filter(x -> !ICDs.contains(x)).forEach(x -> {
             ICDs.add(x.getCode());
             if (iCDRepository.validateICD(x.getCode()) == 0) {
-                ErrorMsgs.add("<b>External Cause of Injury code ["+x.getCode()+"]</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10\n");
+                ErrorMsgs.add("<b>External Cause of Injury code [" + x.getCode() + "]</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10~codeextcauseinj~" + x.getCode() + "~" + x.getId());
             }
         });
 
         claim.getClaiminfocodereasvisit().stream().filter(x -> !ICDs.contains(x)).forEach(x -> {
             ICDs.add(x.getCode());
             if (iCDRepository.validateICD(x.getCode()) == 0) {
-                ErrorMsgs.add("<b>Patient Reason For Visit code ["+x.getCode()+"]</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10\n");
+                ErrorMsgs.add("<b>Patient Reason For Visit code [" + x.getCode() + "]</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10~codereasvisit~" + x.getCode() + "~" + x.getId());
             }
         });
 
         claim.getClaiminfocodeothdiag().stream().filter(x -> !ICDs.contains(x)).forEach(x -> {
             ICDs.add(x.getCode());
             if (iCDRepository.validateICD(x.getCode()) == 0) {
-                ErrorMsgs.add("<b>Other Diagnosis code ["+x.getCode()+"]</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10 ");
+                ErrorMsgs.add("<b>Other Diagnosis code [" + x.getCode() + "]</b> USED DOESNOT MATCH WITH Centers for Medicare & Medicaid Services (CMS). PLEASE USE THIS LINK FOR CORRECT ICD CODE: https://www.cms.gov/Medicare/Coding/ICD10~codeothdiag~" + x.getCode() + "~" + x.getId());
             }
         });
 
@@ -2626,7 +2651,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
         if (!isEmpty(DOB) && !isEmpty(DOS)) {
             if (isInValidDate(DOB, DOS)) {
-                ErrorMsgs.add("DOS cannot be prior to the DOB correction is required \n");
+                ErrorMsgs.add("DOS cannot be prior to the DOB, correction is required");
             }
         }
 
@@ -2930,47 +2955,6 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             }
 
 
-            System.out.println("DOS ->> " + DOS);
-            if (!isEmpty(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()))
-                    && !isEmpty(String.valueOf(claim.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()))) {
-                if (!isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()), DOS)
-                        && !isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()), DOS))
-                    if (claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo().equals(claim.getClaimadditionalinfo().getLastMenstrualPeriodDateAddInfo()))
-                        ErrorMsgs.add(" <b>Illness Date</b> and <b>Last Menstrual Period Date</b>  cannot be <b>Same</b>\n");
-            }
-
-
-            if ((!isEmpty(Related_Causes_Code) && Related_Causes_Code.equals("AA")) || (!isEmpty(Related_Causes_Code) && Related_Causes_Code.equals("OA"))) {
-                if (isEmpty(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()))) {
-                    ErrorMsgs.add(" <b>Accident Date</b> is <b>Missing</b>\n");
-                } else if (isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getAccidentIllnesDateAddInfo()), DOS)) {
-                    ErrorMsgs.add(" <b>Accident Date</b> is <b>InValid</b>\n");
-                }
-            }
-
-            if (!isEmpty(BillingProvider_Taxonomy)) {
-                if (Taxonomy_for_InitialTreatment_List.contains(BillingProvider_Taxonomy)) {
-                    if (PriFillingIndicator.equals("MB") || PriFillingIndicator.equals("MA")) {
-                        if (isEmpty(String.valueOf(claim.getClaimadditionalinfo().getInitialTreatDateAddInfo()))) {
-                            ErrorMsgs.add("<b>Initial Treatment Date</b> is  <b>Missing</b>\n");
-                        } else if (isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getInitialTreatDateAddInfo()), DOS)) {
-                            ErrorMsgs.add("<b>Initial Treatment Date</b> is  <b>InValid</b>\n");
-                        }
-                    }
-                }
-
-
-                if (TaxonomyList.contains(BillingProvider_Taxonomy)) {
-                    //Last Seen Date of Claim should Not be Equal to Date Time Min Value
-                    if (isEmpty(String.valueOf(claim.getClaimadditionalinfo().getLastSeenDateAddInfo()))) {
-                        ErrorMsgs.add("<b>Last Seen Date</b> is  <b>Missing</b>, Last Seen Date is required for this speciality code <b>[" + BillingProvider_Taxonomy + "]</b>\n");
-                    } else if (isInValidDate(String.valueOf(claim.getClaimadditionalinfo().getLastSeenDateAddInfo()), DOS)) {
-                        ErrorMsgs.add("<b>Last Seen Date</b> is  <b>InValid</b>,  Last Seen Date is required for this speciality code <b>[" + BillingProvider_Taxonomy + "]</b>\n");
-                    }
-                }
-            }
-
-
             if (!isEmpty(ReferringProviderFirstName)) {
                 if (!isEmpty(ReferringProviderNPI)) {
                     if (ReferringProviderNPI.matches(NPI_REGEX)) {
@@ -3158,7 +3142,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
                 if (!isEmpty(ProcedureCode)) {
                     if (cPTRepository.validateCPT(ProcedureCode) == 0) {
-                        ErrorMsgs.add("<b>HCPCS ["+ProcedureCode+"]</b> USED DOESNOT MATCH WITH American Medical Association (AMA). PLEASE USE THIS LINK FOR CORRECT HCPCS CODE: https://www.cms.gov/medicare/fraud-and-abuse/physicianselfreferral/list_of_codes\n");
+                        ErrorMsgs.add("<b>HCPCS [" + ProcedureCode + "]</b> USED DOESNOT MATCH WITH American Medical Association (AMA). PLEASE USE THIS LINK FOR CORRECT HCPCS CODE: https://www.cms.gov/medicare/fraud-and-abuse/physicianselfreferral/list_of_codes\n");
                     }
                 } else {
                     ErrorMsgs.add("<b>HCPCS</b> is Missing. It cannot be null or empty\n");
@@ -3460,23 +3444,6 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
                 }
 
 
-                if (cPTRepository.validateMammographyCPT(ProcedureCode) > 0 && (!modifier.contains("26") || isEmpty(modifier))) {
-                    if (isEmpty(claim.getClaimadditionalinfo().getMemmoCertAddInfo())) {
-                        ErrorMsgs.add("<b>FDA Certification Number</b> is Missing with Mammography services [<b>" + ProcedureCode + "</b>] Please check the location settings and update FDA Certification Number \n");
-                    }
-                }
-
-                if (!isEmpty(ProcedureCode) && (ProcedureCode.equals("99238") || ProcedureCode.equals("99239"))) {
-                    if (!Units.equals("1")) {
-                        ErrorMsgs.add("<b>Unit</b> should be eq <b>required</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  \n");
-                    }
-                    if (!ServiceToDate.equals(ServiceFromDate)) {
-                        ErrorMsgs.add("<bSTART AND END DOS </b> should be <b>same</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  \n");
-                    }
-                    if (isEmpty(claim.getClaimadditionalinfo().getHospitalizedToDateAddInfo())) {
-                        ErrorMsgs.add("<b>Discharge Date </b> is <b>required</b> when billed with Procedure  [<b>" + ProcedureCode + "</b>]  \n");
-                    }
-                }
 
 
                 if (PriFillingIndicator.equals("MA") || PriFillingIndicator.equals("MB")) {
@@ -3665,34 +3632,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
 
             }
 
-            ErrorMsgs.replaceAll(s -> s.replace("\n", "").replace("\r", "").replaceAll(" +", " "));
-
-            List<String> removedErrors = claimAudittrailRepository.findByClaimNoAndAction_NQ(claim.getClaimNumber(), "REMOVED");
-
-            for (String e :
-                    removedErrors) {
-
-                for (String errorMsg :
-                        ErrorMsgs) {//O(n^2)
-                    if (errorMsg.equals(e)) {
-                        ErrorMsgs.remove(e);
-                        break;
-                    }
-                }
-
-            }
-
-
-            claimAudittrailRepository.deleteClaimAudittrailByClaimNoAndAction(claim.getClaimNumber(), "FIRED");
-            Integer id = -1;
-            for (String error :
-                    ErrorMsgs) {
-                ScrubberRulesDto scrubberRulesDto = new ScrubberRulesDto();
-                id = insertClaimAuditTrails(claim, error, "FIRED").getId();
-                scrubberRulesDto.setId(id);
-                scrubberRulesDto.setDescription(error);
-                rulesList.add(scrubberRulesDto);
-            }
+            rulesList = gettingRulesFormatted(claim, rulesList, ErrorMsgs);
 
 
             Instant end = Instant.now();
@@ -3912,17 +3852,6 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
         return iCDRepository.validateBMIICD(Code) > 0;
     }
 
-    public boolean isInValidDate(final String date, final String ClaimCreateDate) {
-        return date.equals("00000000") || date.equals("19000101") || Integer.parseInt(date.replace("-", "")) > Integer.parseInt(ClaimCreateDate);
-    }
-
-    static boolean isEmpty(final String str) {
-        return (str == null) || str.equals("null") || (str.length() <= 0);
-    }
-
-    static boolean isEmpty(final Object str) {
-        return (str == null);
-    }
 
     private boolean isInValidTaxonomy(String taxonomy) {
         return wpctaxonomyRepository.validateTaxonomy(taxonomy) > 1;

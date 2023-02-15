@@ -6,9 +6,11 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.Persistable;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -136,7 +138,7 @@ public class Claiminfomaster implements Serializable {
 
 
     @Column(name = "CreatedDate")
-    private Instant createdDate;
+    private ZonedDateTime createdDate;
 
     @Size(max = 255)
     @Column(name = "CreatedBy")
@@ -362,7 +364,7 @@ public class Claiminfomaster implements Serializable {
 
     @PrePersist
     public void created() {
-        createdDate = new Date().toInstant();
+        createdDate = ZonedDateTime.now();
         createdBy = "MOUHID_CREATED";
 
         if(claimNumber.startsWith("CP")){
@@ -384,5 +386,6 @@ public class Claiminfomaster implements Serializable {
 
         System.out.println("NewClaimUpdate updatedAt -> " + updatedAt + " updatedBy -> " + updatedBy);
     }
+
 
 }

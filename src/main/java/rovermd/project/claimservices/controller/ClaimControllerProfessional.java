@@ -10,9 +10,12 @@ import rovermd.project.claimservices.dto.copyClaim.institutional.Claiminfomaster
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.service.ClaimServiceEDI;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -23,9 +26,13 @@ public class ClaimControllerProfessional {
 
     @Autowired
     private ClaimServiceSrubber claimServiceSrubber;
+
+    @Autowired
+    private ClaimServiceEDI claimServiceEDI;
+
     @PostMapping
-    public ResponseEntity<SuccessMsg> createClaim(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
-        SuccessMsg successMsg = claimService.createClaim(claimDTO, request.getRemoteAddr());
+    public ResponseEntity<ClaiminfomasterProfDto> createClaim(@RequestBody ClaiminfomasterProfDto claimDTO, HttpServletRequest request) {
+        ClaiminfomasterProfDto successMsg = claimService.createClaim(claimDTO, request.getRemoteAddr());
         return new ResponseEntity<>(successMsg, HttpStatus.CREATED);
     }
 
@@ -49,6 +56,20 @@ public class ClaimControllerProfessional {
     public ResponseEntity<List<?>> scrubber(@RequestBody Claiminfomaster claim) {
         List<?> res = claimServiceSrubber.scrubberProf(claim);
         return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @GetMapping("/edi/{claimId}")
+    public ResponseEntity<?> edi(@PathVariable Integer claimId) throws ParseException, IOException {
+        Object ediProf = claimServiceEDI.createEDI_Prof(claimId);
+        if(ediProf==null){
+            SuccessMsg successMsg = new SuccessMsg();
+            successMsg.setStatuscode("OK");
+            successMsg.setMessage("Edi Generated Successfully");
+            return new ResponseEntity<>(successMsg, HttpStatus.OK);
+
+        }else{
+            return new ResponseEntity<>(ediProf, HttpStatus.OK);
+        }
     }
 
 

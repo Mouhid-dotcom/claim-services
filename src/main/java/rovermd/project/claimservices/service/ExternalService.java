@@ -8,4 +8,5 @@ public interface ExternalService {
 
     PatientDto getPatientDetailsById(PatientReqDto patientReqDto);
     ClientDTO getClientDetailsById(long id);
+    CompanyDTO getCompanyDetailsById(long id);
 }

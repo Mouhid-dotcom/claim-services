@@ -5,7 +5,7 @@ import rovermd.project.claimservices.entity.Claiminfomaster;
 import java.util.List;
 
 public interface ClaimServiceSrubber {
-    List<?> scrubberProf(Claiminfomaster claim);
+    List<?> scrubberProf(Claiminfomaster claim, int... changeDetected);
 
-    List<?> scrubberInst(Claiminfomaster claim);
+    List<?> scrubberInst(Claiminfomaster claim, int... changeDetected);
 }

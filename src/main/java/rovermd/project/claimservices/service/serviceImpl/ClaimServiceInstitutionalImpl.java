@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static rovermd.project.claimservices.util.UtilityHelper.isEmpty;
+
 @Service
 public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional {
 
@@ -236,7 +238,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                 }
             }
 
-            if (claim.getScrubbed() == 1) {
+            if (claim.getScrubbed() == 0) {
                 List<ClaimAudittrail> fired = claimAudittrailRepository.findByClaimNoAndAction(claim.getClaimNumber(), "FIRED");
                 for (ClaimAudittrail error :
                         fired) {
@@ -510,6 +512,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
     @Override
     public ClaiminfomasterInstDto createClaim(ClaiminfomasterInstDto claimDTO, String remoteAddr) {
         Claiminfomaster save = null;
+        Double totalChargeswrtClaim = 0.00;
         try {
             List<ClaimchargesinfoDto> newClaimChargesinfoDTO = claimDTO.getClaimchargesinfo();
             Claiminfomaster claim = dtoToClaim(claimDTO);
@@ -527,12 +530,15 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
             List<Claimchargesinfo> claimClaimchargesinfo = claim.getClaimchargesinfo();
 
+            IntStream.range(0, claim.getClaimchargesinfo().size())
+                    .forEach(i -> claim.getClaimchargesinfo().get(i).setClaiminfomaster(claim));
+
             IntStream.range(0, claimClaimchargesinfo.size())
                     .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
                     .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
 
-            IntStream.range(0, claimClaimchargesinfo.size())
-                    .forEach(i -> claim.getClaimchargesinfo().get(i).setClaiminfomaster(claim));
+            IntStream.range(0, claim.getClaiminfocodereasvisit().size())
+                    .forEach(i -> claim.getClaiminfocodereasvisit().get(i).setClaiminfomaster(claim));
 
             IntStream.range(0, claim.getClaiminfocodeconditioncode().size())
                     .forEach(i -> claim.getClaiminfocodeconditioncode().get(i).setClaiminfomaster(claim));
@@ -642,16 +648,20 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                         claimchargesinfoDto.getHCPCSProcedure(),
                         "Revenue code"
                 );
-
+                if (claimchargesinfoDto.getStatus() == 1)
+                    totalChargeswrtClaim += claimchargesinfoDto.getAmount();
             }
+            claim.setTotalCharges(totalChargeswrtClaim);
 
             List<?> scrubber = claimServiceSrubber.scrubberInst(claim);
 
             if (scrubber.size() > 0) {
-                claim.setScrubbed(1);
+                claim.setScrubbed(0);//failed by scrubber
             } else {
-                claim.setScrubbed(0);
+                claim.setScrubbed(1);//passed by scrubber
             }
+
+            claim.setTotalCharges(totalChargeswrtClaim);
 
             save = claimRepo.save(claim);
             insertClaimAuditTrails(claim,
@@ -662,21 +672,22 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         }
 
 
-
         return claimToDto(save);
     }
 
     @Transactional
     @Override
-    public ClaiminfomasterInstDto updateClaim(ClaiminfomasterInstDto claimDTO, String remoteAddr) {
+    public ClaiminfomasterInstDto updateClaim(ClaiminfomasterInstDto latestClaimDTO, String remoteAddr) {
         List<ClaimchargesinfoDto> existingClaimChargesinfoDTO;
         List<ClaimchargesinfoDto> newClaimChargesinfoDTO;
+        Double totalChargeswrtClaim = 0.00;
 
-        Claiminfomaster claim = filterChargesWrtStatus(claimRepo.findById(claimDTO.getId()).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimDTO.getId())));
+
+        Claiminfomaster claim = filterChargesWrtStatus(claimRepo.findById(latestClaimDTO.getId()).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", latestClaimDTO.getId())));
         ClaiminfomasterInstDto existingClaimDTO = filterChargesWrtStatus_DTO(claimToDto(claim));
 
         existingClaimChargesinfoDTO = existingClaimDTO.getClaimchargesinfo();
-        newClaimChargesinfoDTO = claimDTO.getClaimchargesinfo();
+        newClaimChargesinfoDTO = latestClaimDTO.getClaimchargesinfo();
 
 
         if (!existingClaimChargesinfoDTO.equals(newClaimChargesinfoDTO)) {
@@ -694,6 +705,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                             .ruleText("CPT : " + claimchargesinfoDto.getHCPCSProcedure() + " ADDED").build());
                 }
             }
+
 
 
             for (int i = 0; i < existingClaimChargesinfoDTO.size(); i++) {
@@ -818,7 +830,10 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
                 }
 
+                if (newClaimChargesinfoDTO.get(i).getStatus() == 1)
+                    totalChargeswrtClaim += newClaimChargesinfoDTO.get(i).getAmount();
             }
+            claim.setTotalCharges(totalChargeswrtClaim);
 
 
             claimAudittrailService.createAuditTrail(ClaimAudittrail.builder()
@@ -833,7 +848,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
         }
 
-        modelMapper.map(claimDTO, claim);
+        modelMapper.map(latestClaimDTO, claim);
 
         claim.setCreatedBy("Mouhid");
         claim.setCreatedIP(remoteAddr);
@@ -845,16 +860,45 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         }
 
         List<Claimchargesinfo> claimClaimchargesinfo = claim.getClaimchargesinfo();
+
+        IntStream.range(0, claim.getClaimchargesinfo().size())
+                .forEach(i -> claim.getClaimchargesinfo().get(i).setClaiminfomaster(claim));
+
         IntStream.range(0, claimClaimchargesinfo.size())
                 .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
                 .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
 
-        List<?> scrubber = claimServiceSrubber.scrubberInst(claim);
+        IntStream.range(0, claim.getClaiminfocodereasvisit().size())
+                .forEach(i -> claim.getClaiminfocodereasvisit().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfocodeconditioncode().size())
+                .forEach(i -> claim.getClaiminfocodeconditioncode().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfocodevaluecode().size())
+                .forEach(i -> claim.getClaiminfocodevaluecode().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfooccurance().size())
+                .forEach(i -> claim.getClaiminfooccurance().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfocodeoccspan().size())
+                .forEach(i -> claim.getClaiminfocodeoccspan().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfocodeothprocedure().size())
+                .forEach(i -> claim.getClaiminfocodeothprocedure().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfocodeothdiag().size())
+                .forEach(i -> claim.getClaiminfocodeothdiag().get(i).setClaiminfomaster(claim));
+
+        IntStream.range(0, claim.getClaiminfocodeextcauseinj().size())
+                .forEach(i -> claim.getClaiminfocodeextcauseinj().get(i).setClaiminfomaster(claim));
+
+        List<?> scrubber = claimServiceSrubber.scrubberInst(claim,existingClaimDTO.equals(latestClaimDTO)?0:1);
+
 
         if (scrubber.size() > 0) {
-            claim.setScrubbed(1);
+            claim.setScrubbed(0);//failed by scrubber
         } else {
-            claim.setScrubbed(0);
+            claim.setScrubbed(1);//passed by scrubber
         }
 
         Claiminfomaster save = claimRepo.save(claim);
@@ -880,14 +924,6 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         }
     }
 
-    static boolean isEmpty(final String str) {
-        return (str == null) || (str.length() <= 0);
-    }
-
-
-    static boolean isEmpty(Object str) {
-        return (str == null);
-    }
 
     private void compareCPT(String existingAttr, String newAttr, Claiminfomaster claim) {
 

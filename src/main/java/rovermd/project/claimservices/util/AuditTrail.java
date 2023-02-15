@@ -11,6 +11,8 @@ import rovermd.project.claimservices.entity.Claiminfomaster;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.serviceImpl.ClaimAudittrailServiceImpl;
 
+import java.time.Instant;
+
 @Component
 public class AuditTrail {
 
@@ -27,7 +29,7 @@ public class AuditTrail {
         claimAudittrail.setClaimType(String.valueOf(claim.getClaimType()));
         claimAudittrail.setUserID(claim.getCreatedBy());
         claimAudittrail.setClientID(String.valueOf(claim.getClientId()));
-        claimAudittrail.setCreatedAt(claim.getCreatedDate());
+        claimAudittrail.setCreatedAt(Instant.from(claim.getCreatedDate()));
         claimAudittrail.setUserIP(claim.getCreatedIP());
         claimAudittrail.setAction("CREATED");
         claimAudittrail.setRuleText("CLAIM SAVED");
