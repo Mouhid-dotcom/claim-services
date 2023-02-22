@@ -39,8 +39,6 @@ public class ClaimServiceEDIImpl implements ClaimServiceEDI {
     @Autowired
     private CPTRepository cPTRepository;
 
-    @Autowired
-    private ICDRepository iCDRepository;
 
     @Autowired
     private AnesthesiacodeRepository anesthesiacodeRepository;

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rovermd.project.claimservices.dto.SuccessMsg;
+import rovermd.project.claimservices.dto.ub04.UB04DTO;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterProfDto_CopyClaim;
 import rovermd.project.claimservices.dto.institutional.ClaiminfomasterInstDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
@@ -72,5 +73,11 @@ public class ClaimControllerInstitutional {
         }
     }
 
+
+    @GetMapping("/ub04/{claimId}")
+    public ResponseEntity<UB04DTO> ub04(@PathVariable Integer claimId) {
+        UB04DTO claim = claimService.ub04(claimId);
+        return new ResponseEntity<>(claim, HttpStatus.CREATED);
+    }
 
 }

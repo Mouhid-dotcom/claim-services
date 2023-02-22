@@ -6,10 +6,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rovermd.project.claimservices.dto.ScrubberRulesDto;
+import rovermd.project.claimservices.dto.*;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterProfDto_CopyClaim;
 import rovermd.project.claimservices.dto.institutional.*;
+import rovermd.project.claimservices.dto.ub04.UB04DTO;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
@@ -31,6 +32,13 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
     @Autowired
     private ClaiminfomasterRepository claimRepo;
+
+    @Autowired
+    private ClaimchargesinfoRepository claimchargesinfoRepository;
+
+    @Autowired
+    private ClaimadditionalinfoRepository claimadditionalinfoRepository;
+
 
     @Autowired
     private ClaimStatusRepository claimStatusRepository;
@@ -55,7 +63,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
     private ClaimAudittrailService claimAudittrailService;
 
     @Autowired
-    private ExternalService masterDefService;
+    private ExternalService externalService;
 
     @Autowired
     private ClaimServiceSrubber claimServiceSrubber;
@@ -105,13 +113,13 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
             claiminfomasterInstDto_viewSingleClaim = claimToDto_ViewSingleClaim(claim);
 
             String InsuranceName = claim.getPriInsuranceNameId();
-            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
+            InsuranceName = !isEmpty(InsuranceName) ? externalService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
             claiminfomasterInstDto_viewSingleClaim.setPriInsuranceName(
                     InsuranceName
             );
 
             InsuranceName = claim.getSecondaryInsuranceId();
-            InsuranceName = !isEmpty(InsuranceName) ? masterDefService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
+            InsuranceName = !isEmpty(InsuranceName) ? externalService.getInsuranceDetailsById(InsuranceName).getPayerName() : null;
             claiminfomasterInstDto_viewSingleClaim.setSecondaryInsurance(
                     InsuranceName
             );
@@ -707,7 +715,6 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
             }
 
 
-
             for (int i = 0; i < existingClaimChargesinfoDTO.size(); i++) {
                 if (!existingClaimChargesinfoDTO.get(i).equals(newClaimChargesinfoDTO.get(i))) {
 
@@ -892,7 +899,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         IntStream.range(0, claim.getClaiminfocodeextcauseinj().size())
                 .forEach(i -> claim.getClaiminfocodeextcauseinj().get(i).setClaiminfomaster(claim));
 
-        List<?> scrubber = claimServiceSrubber.scrubberInst(claim,existingClaimDTO.equals(latestClaimDTO)?0:1);
+        List<?> scrubber = claimServiceSrubber.scrubberInst(claim, existingClaimDTO.equals(latestClaimDTO) ? 0 : 1);
 
 
         if (scrubber.size() > 0) {
@@ -904,6 +911,79 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         Claiminfomaster save = claimRepo.save(claim);
 
         return claimToDto(save);
+    }
+
+    @Override
+    public UB04DTO ub04(Integer claimId) {
+        Claiminfomaster claim = claimRepo.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimId));
+
+        UB04DTO ubo4 = new UB04DTO();
+
+        if (!isEmpty(claim.getClientId())) {
+            try {
+                ClientDTO clientDetailsById = externalService.getClientDetailsById(claim.getClientId());
+                ubo4.setClientDTO(clientDetailsById);
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Client", "Id", claim.getClientId());
+            }
+        }
+
+        if (
+                (!isEmpty(claim.getPatientRegId())
+                        && !isEmpty(claim.getVisitId())
+                        && !isEmpty(claim.getPriInsuranceNameId()))
+                        || !isEmpty(claim.getSecondaryInsuranceId())
+        ) {
+            try {
+
+                PatientReqDto patientReqDto = new PatientReqDto();
+                patientReqDto.setPatientRegId(claim.getPatientRegId() == null ? null : Long.valueOf(claim.getPatientRegId()));
+                patientReqDto.setVisitId(claim.getVisitId() == null ? null : Long.valueOf(claim.getVisitId()));
+                patientReqDto.setPrimaryInsuranceId(1L);//claim.getPriInsuranceNameId() == null ? null : Long.valueOf(claim.getPriInsuranceNameId()));
+                patientReqDto.setSecondaryInsuranceId(claim.getSecondaryInsuranceId() == null ? null : Long.valueOf(claim.getSecondaryInsuranceId()));
+
+                PatientDto patientDetailsById = externalService.getPatientDetailsById(patientReqDto);
+                ubo4.setPatientDto(patientDetailsById);
+
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Patient", "Id", claim.getPatientRegId());
+            }
+        }
+
+        try {
+            CompanyDTO companyDetailsById = externalService.getCompanyDetailsById(1);
+            ubo4.setCompanyDTO(companyDetailsById);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("CompanyCredential", "Id", 1);
+        }
+
+
+        try {
+            InsuranceDTO PrimaryinsuranceDetailsById = externalService.getInsuranceDetailsById(String.valueOf(902));
+            ubo4.setInsuranceDTO(PrimaryinsuranceDetailsById);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Insurance", "Id", 902);
+        }
+
+        try {
+            List<ClaimchargesinfoDto> collect = claimchargesinfoRepository.findByClaiminfomasterId(claimId).stream().map(this::claimChargesInfoToDto).collect(Collectors.toList());
+            ubo4.setClaimchargesinfoDto(collect);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("ClaimChargesInfo", "ClaimInfoMasterId", claimId);
+        }
+
+        try {
+            ClaimadditionalinfoDto claimadditionalinfoDto = claimadditionalinfoToDto(claimadditionalinfoRepository.findByClaiminfomasterId(claimId));
+            ubo4.setClaimadditionalinfoDto(claimadditionalinfoDto);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("ClaimAdditionalInfo", "ClaimInfoMasterId", claimId);
+        }
+
+        return ubo4;
+    }
+
+    private ClaimadditionalinfoDto claimadditionalinfoToDto(Claimadditionalinfo claimadditionalinfo) {
+        return modelMapper.map(claimadditionalinfo, ClaimadditionalinfoDto.class);
     }
 
     private void compareClaimChargesInfoAttr(String existingAttr, String newAttr, Claiminfomaster claim, String hcpcsProcedure, String title) {
@@ -924,6 +1004,9 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         }
     }
 
+    private ClaimchargesinfoDto claimChargesInfoToDto(Claimchargesinfo charge) {
+        return modelMapper.map(charge, ClaimchargesinfoDto.class);
+    }
 
     private void compareCPT(String existingAttr, String newAttr, Claiminfomaster claim) {
 

@@ -7,9 +7,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rovermd.project.claimservices.dto.ClaimInfoMaster_List;
-import rovermd.project.claimservices.dto.ScrubberRulesDto;
-import rovermd.project.claimservices.dto.SuccessMsg;
+import rovermd.project.claimservices.dto.*;
+import rovermd.project.claimservices.dto.cms1500.*;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterProfDto_CopyClaim;
 import rovermd.project.claimservices.dto.professional.ClaimadditionalinfoDto;
@@ -40,6 +39,9 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
     private ClaiminfomasterRepository claimRepo;
 
     @Autowired
+    private ClaimchargesinfoRepository claimchargesinfoRepository;
+
+    @Autowired
     private TOSRepository tOSRepository;
 
     @Autowired
@@ -67,6 +69,8 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
     private MODRepository mODRepository;
     @Autowired
     private ClaimAudittrailRepository claimAudittrailRepository;
+    @Autowired
+    private ClaimadditionalinfoRepository claimadditionalinfoRepository;
 
     @Override
     public ClaiminfomasterProfDto_ViewSingleClaim getClaimById(Integer claimId) {
@@ -358,6 +362,83 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
         claiminfomasterInstDto.setClaimNumber("CI-" + claimNumber);
 
         return claiminfomasterInstDto;
+    }
+
+    @Override
+    public CMS1500DTO cms1500(Integer claimId) {
+        Claiminfomaster claim = claimRepo.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimId));
+
+        CMS1500DTO cms1500DTO = new CMS1500DTO();
+
+        if (!isEmpty(claim.getClientId())) {
+            try {
+                ClientDTO_CMS1500 clientDetailsById = externalService.getClientDetailsById_CMS1500(claim.getClientId());
+                cms1500DTO.setClientDetails(clientDetailsById);
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Client","Id",claim.getClientId());
+            }
+        }
+
+        if (!isEmpty(claim.getBillingProviders())) {
+            try {
+                DoctorDTO doctorDetail = externalService.getDoctorDetailsById(Long.parseLong(claim.getBillingProviders()));
+                cms1500DTO.setDoctorDetail(doctorDetail);
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Client","Id",claim.getClientId());
+            }
+        }
+
+        if (
+                (!isEmpty(claim.getPatientRegId())
+                        && !isEmpty(claim.getVisitId())
+                        && !isEmpty(claim.getPriInsuranceNameId()))
+                        || !isEmpty(claim.getSecondaryInsuranceId())
+        ) {
+            try {
+
+                PatientReqDto patientReqDto = new PatientReqDto();
+                patientReqDto.setPatientRegId(claim.getPatientRegId() == null ? null : Long.valueOf(claim.getPatientRegId()));
+                patientReqDto.setVisitId(claim.getVisitId() == null ? null : Long.valueOf(claim.getVisitId()));
+                patientReqDto.setPrimaryInsuranceId(1L);//claim.getPriInsuranceNameId() == null ? null : Long.valueOf(claim.getPriInsuranceNameId()));
+                patientReqDto.setSecondaryInsuranceId(claim.getSecondaryInsuranceId() == null ? null : Long.valueOf(claim.getSecondaryInsuranceId()));
+
+                PatientDto_CMS1500 patientDetailsById = externalService.getPatientDetailsById_CMS1500(patientReqDto);
+                cms1500DTO.setPatientDetails(patientDetailsById);
+
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Patient","Id",claim.getPatientRegId());
+            }
+        }
+
+        try {
+            CompanyDTO companyDetailsById = externalService.getCompanyDetailsById(1);
+            cms1500DTO.setCompanyDetails(companyDetailsById);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("CompanyCredential","Id",1);
+        }
+
+
+        try {
+            InsuranceDTO_CMS1500 PrimaryinsuranceDetailsById = externalService.getInsuranceDetailsById_CMS1500(String.valueOf(902));
+            cms1500DTO.setInsuranceDetails(PrimaryinsuranceDetailsById);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Insurance","Id",902);
+        }
+
+        try {
+            List<ClaimchargesinfoDto_CMS1500> charges = claimchargesinfoRepository.findByClaiminfomasterId(claimId).stream().map(this::claimChargesInfoToDto).collect(Collectors.toList());
+            cms1500DTO.setClaimChargesDetails(charges);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("ClaimChargesInfo","ClaimInfoMasterId",claimId);
+        }
+
+        try {
+            ClaimadditionalinfoDto_CMS1500 claimadditionalinfoDto = claimadditionalinfoToDto(claimadditionalinfoRepository.findByClaiminfomasterId(claimId));
+            cms1500DTO.setClaimAdditionalinfoDetails(claimadditionalinfoDto);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("ClaimAdditionalInfo","ClaimInfoMasterId",claimId);
+        }
+        return cms1500DTO;
     }
 
     @Override
@@ -834,8 +915,8 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
                 .filter(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo() != null)
                 .forEach(i -> claim.getClaimchargesinfo().get(i).getClaimchargesotherinfo().setClaimchargesinfo(claim.getClaimchargesinfo().get(i)));
 
-//        System.out.println("existingClaimDTO.equals(latestClaimDTO)?0:1 -> "+(existingClaimDTO.equals(latestClaimDTO)?0:1));
-        List<?> scrubber = claimServiceSrubber.scrubberProf(claim,existingClaimDTO.equals(latestClaimDTO)?0:1);
+        System.out.println("existingClaimDTO.equals(latestClaimDTO)?0:1 -> "+(existingClaimDTO.equals(latestClaimDTO)?0:1));
+        List<?> scrubber = claimServiceSrubber.scrubberProf(claim, existingClaimDTO.equals(latestClaimDTO) ? 0 : 1);
 
         if (scrubber.size() > 0) {
             claim.setScrubbed(0);//failed by scrubber
@@ -1037,6 +1118,13 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
 
     private ClaiminfomasterProfDto claimToDto(Claiminfomaster claim) {
         return modelMapper.map(claim, ClaiminfomasterProfDto.class);
+    }
+    private ClaimchargesinfoDto_CMS1500 claimChargesInfoToDto(Claimchargesinfo charge) {
+        return modelMapper.map(charge, ClaimchargesinfoDto_CMS1500.class);
+    }
+
+    private ClaimadditionalinfoDto_CMS1500 claimadditionalinfoToDto(Claimadditionalinfo claimadditionalinfo) {
+        return modelMapper.map(claimadditionalinfo, ClaimadditionalinfoDto_CMS1500.class);
     }
 
     private ClaimInfoMaster_List claimToDto_List(Claiminfomaster claim) {

@@ -17,24 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class ClaimadditionalinfoDto implements Serializable {
     private Integer id;
-    @Size(max = 255)
-    private String statmentCoverFromDateAddInfo;
-    @Size(max = 255)
-    private String statmentCoverToDateAddInfo;
-    @Size(max = 255)
-    private String admissionDateAddInfo;
-    @Size(max = 255)
-    private String admissionHourAddInfo;
-    @Size(max = 255)
-    private String admissionTypeAddInfo;
-    @Size(max = 255)
-    private String admissionSourceAddInfo;
-    @Size(max = 255)
-    private String dischargeHourAddInfo;
-    @Size(max = 255)
-    private String patientStatusAddInfo;
-    @Size(max = 255)
-    private String delayReasonCodeAddInfo;
+
     @Size(max = 255)
     private String employmentStatusAddInfo;
     @Size(max = 255)
@@ -42,16 +25,7 @@ public class ClaimadditionalinfoDto implements Serializable {
     @Size(max = 255)
     private String otherAccidentAddInfo;
     @Size(max = 255)
-    private String pPSAddInfo;
-    private String remarksAddInfo;
-    @Size(max = 255)
     private String autoaccidentStateaddinfo;
-    @Size(max = 255)
-    private String releaseInfoAddInfo;
-    @Size(max = 255)
-    private String assofBenifitAddInfo;
-    @Size(max = 255)
-    private String provAccAssigAddInfo;
     private LocalDate accidentIllnesDateAddInfo;
     private LocalDate lastMenstrualPeriodDateAddInfo;
     private LocalDate initialTreatDateAddInfo;

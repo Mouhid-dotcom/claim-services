@@ -1,5 +1,6 @@
 package rovermd.project.claimservices.service;
 
+import rovermd.project.claimservices.dto.cms1500.CMS1500DTO;
 import rovermd.project.claimservices.dto.ClaimInfoMaster_List;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
@@ -19,7 +20,6 @@ public interface ClaimServiceProfessional {
 
     ClaiminfomasterInstDto_CopyClaim copyClaim(Integer claimID);
 
-
-
+    CMS1500DTO cms1500(Integer claimID);
 
 }

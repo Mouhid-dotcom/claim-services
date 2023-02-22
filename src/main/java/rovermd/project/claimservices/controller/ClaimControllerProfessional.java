@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rovermd.project.claimservices.dto.cms1500.CMS1500DTO;
 import rovermd.project.claimservices.dto.SuccessMsg;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
@@ -72,5 +73,9 @@ public class ClaimControllerProfessional {
         }
     }
 
-
+    @GetMapping("/cms1500/{claimId}")
+    public ResponseEntity<CMS1500DTO> cms1500(@PathVariable Integer claimId) throws ParseException, IOException {
+        CMS1500DTO claim = claimService.cms1500(claimId);
+        return new ResponseEntity<>(claim, HttpStatus.CREATED);
+    }
 }

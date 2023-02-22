@@ -7,4 +7,5 @@ import rovermd.project.claimservices.entity.Claimadditionalinfo;
 @Repository
 
 public interface ClaimadditionalinfoRepository extends JpaRepository<Claimadditionalinfo, Integer> {
+    Claimadditionalinfo findByClaiminfomasterId(Integer claimId);
 }
