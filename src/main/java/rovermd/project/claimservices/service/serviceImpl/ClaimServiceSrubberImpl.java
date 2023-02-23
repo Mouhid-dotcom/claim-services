@@ -133,6 +133,11 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
     @Autowired
     private RevenueCodeRepository revenueCodeRepository;
 
+    @Autowired
+    private ClaimServiceProfessionalImpl claimServiceProf;
+    @Autowired
+    private ClaimServiceInstitutionalImpl claimServiceInst;
+
     @Transactional
     @Override
     public List<?> scrubberProf(Claiminfomaster claim, int... changeDetected) {
@@ -144,6 +149,8 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             rulesList = gettingRulesFormatted(claim, rulesList, ErrorMsgs);
             if (rulesList.size() > 0) return rulesList;
         }
+
+        claim = claimServiceProf.filterChargesWrtStatus(claim);
 
         String ReasonVisit = "";
         String PatientFirstName = "";
@@ -2382,6 +2389,7 @@ public class ClaimServiceSrubberImpl implements ClaimServiceSrubber {
             rulesList = gettingRulesFormatted(claim, rulesList, ErrorMsgs);
             if (rulesList.size() > 0) return rulesList;
         }
+        claim = claimServiceInst.filterChargesWrtStatus(claim);
 
         String ReasonVisit = "";
         String PatientFirstName = "";

@@ -368,6 +368,8 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
     public CMS1500DTO cms1500(Integer claimId) {
         Claiminfomaster claim = claimRepo.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimId));
 
+        claim = filterChargesWrtStatus(claim);
+
         CMS1500DTO cms1500DTO = new CMS1500DTO();
 
         if (!isEmpty(claim.getClientId())) {
@@ -384,7 +386,7 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
                 DoctorDTO doctorDetail = externalService.getDoctorDetailsById(Long.parseLong(claim.getBillingProviders()));
                 cms1500DTO.setDoctorDetail(doctorDetail);
             } catch (Exception e) {
-                throw new ResourceNotFoundException("Client","Id",claim.getClientId());
+                throw new ResourceNotFoundException("Billing Provider","Id",Long.valueOf(claim.getBillingProviders()));
             }
         }
 

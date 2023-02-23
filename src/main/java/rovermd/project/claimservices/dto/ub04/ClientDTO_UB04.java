@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.dto.cms1500;
+package rovermd.project.claimservices.dto.ub04;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,14 +7,14 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClientDTO_CMS1500 {
+public class ClientDTO_UB04 {
     String address;
     String city;
-    String profName;
-    String profNpi;
+    String fullName;
+    String npi;
     String phone;
     String state;
-    String profTaxId;
+    String taxid;
     String taxanomySpecialty;
     String zipCode;
 }

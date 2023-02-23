@@ -9,9 +9,9 @@ import rovermd.project.claimservices.entity.Claiminfomaster;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.CPTRepository;
 import rovermd.project.claimservices.repos.ClaiminfomasterRepository;
-import rovermd.project.claimservices.repos.ICDRepository;
 import rovermd.project.claimservices.repos.scrubber.AnesthesiacodeRepository;
 import rovermd.project.claimservices.service.ClaimServiceEDI;
+import rovermd.project.claimservices.service.ClaimServiceInstitutional;
 import rovermd.project.claimservices.service.ExternalService;
 import rovermd.project.claimservices.util.x12.Context;
 import rovermd.project.claimservices.util.x12.Loop;
@@ -49,6 +49,12 @@ public class ClaimServiceEDIImpl implements ClaimServiceEDI {
     @Autowired
     private ClaimServiceSrubberImpl claimServiceScrubberImpl;
 
+    @Autowired
+    private ClaimServiceProfessionalImpl claimServiceProf;
+
+    @Autowired
+    private ClaimServiceInstitutionalImpl claimServiceInst;
+
     @Transactional
     @Override
     public Object createEDI_Prof(Integer claimId) throws ParseException, IOException {
@@ -59,6 +65,8 @@ public class ClaimServiceEDIImpl implements ClaimServiceEDI {
         if (claim.getScrubbed() == 0) {
             return claimServiceScrubberImpl.gettingRulesFormatted(claim, rulesList, ErrorMsgs);
         }
+
+        claim = claimServiceProf.filterChargesWrtStatus(claim);
 
         String PatientName = "";
         String PatientRegId = "";
@@ -926,6 +934,8 @@ public class ClaimServiceEDIImpl implements ClaimServiceEDI {
         if (claim.getScrubbed() == 0) {
             return claimServiceScrubberImpl.gettingRulesFormatted(claim, rulesList, ErrorMsgs);
         }
+
+        claim = claimServiceInst.filterChargesWrtStatus(claim);
 
         String PatientName = "";
         String PatientRegId = "";

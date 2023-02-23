@@ -22,9 +22,4 @@ public class DoctorDTO implements Serializable {
     private String ssn;
     private String etin;
     private String phoneNumber;
-    private Date createdOn;
-    private Date updatedOn;
-    private String createdBy;
-    private String updatedBy;
-    private Boolean isDeleted;
 }

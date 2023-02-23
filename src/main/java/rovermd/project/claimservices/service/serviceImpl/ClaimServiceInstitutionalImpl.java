@@ -10,7 +10,7 @@ import rovermd.project.claimservices.dto.*;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterProfDto_CopyClaim;
 import rovermd.project.claimservices.dto.institutional.*;
-import rovermd.project.claimservices.dto.ub04.UB04DTO;
+import rovermd.project.claimservices.dto.ub04.*;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
@@ -35,6 +35,18 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
     @Autowired
     private ClaimchargesinfoRepository claimchargesinfoRepository;
+
+    @Autowired
+    private ClaiminfocodeconditioncodeRepository claiminfocodeconditioncodeRepository;
+
+    @Autowired
+    private ClaiminfooccuranceRepository claiminfooccuranceRepository;
+
+    @Autowired
+    private ClaiminfocodeoccspanRepository claiminfocodeoccspanRepository;
+
+    @Autowired
+    private ClaiminfocodevaluecodeRepository claiminfocodevaluecodeRepository;
 
     @Autowired
     private ClaimadditionalinfoRepository claimadditionalinfoRepository;
@@ -916,12 +928,40 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
     @Override
     public UB04DTO ub04(Integer claimId) {
         Claiminfomaster claim = claimRepo.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimId));
+        claim = filterChargesWrtStatus(claim);
+
+        ObjectNode RevCodeAndDescription = null;
+        ObjectNode attendingProviderDetail = null;
+        ObjectNode operatingProviderDetail = null;
+        ClaiminfomasterInstDto_ViewSingleClaim claiminfomasterInstDto_viewSingleClaim = null;
 
         UB04DTO ubo4 = new UB04DTO();
+        ClaiminfomasterInstDto_UB04 claiminfomasterInstDtoUb04 = claimToDto_UB04(claim);
+        ubo4.setClaiminfomasterInstDto(claiminfomasterInstDtoUb04);
+
+        if (!isEmpty(claim.getAttendingProvider())) {
+            try {
+                DoctorDTO doctorDetail = externalService.getDoctorDetailsById(Long.parseLong(claim.getAttendingProvider()));
+                claiminfomasterInstDtoUb04.setAttendingProvider(doctorDetail);
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Attending Provider","Id",Long.valueOf(claim.getAttendingProvider()));
+            }
+        }
+
+        if (!isEmpty(claim.getOperatingProvider())) {
+            try {
+                DoctorDTO doctorDetail = externalService.getDoctorDetailsById(Long.parseLong(claim.getOperatingProvider()));
+                claiminfomasterInstDtoUb04.setOperatingProvider(doctorDetail);
+            } catch (Exception e) {
+                throw new ResourceNotFoundException("Operating Provider","Id",Long.valueOf(claim.getOperatingProvider()));
+            }
+        }
+
+
 
         if (!isEmpty(claim.getClientId())) {
             try {
-                ClientDTO clientDetailsById = externalService.getClientDetailsById(claim.getClientId());
+                ClientDTO_UB04 clientDetailsById = externalService.getClientDetailsById_UB04(claim.getClientId());
                 ubo4.setClientDTO(clientDetailsById);
             } catch (Exception e) {
                 throw new ResourceNotFoundException("Client", "Id", claim.getClientId());
@@ -966,18 +1006,57 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         }
 
         try {
-            List<ClaimchargesinfoDto> collect = claimchargesinfoRepository.findByClaiminfomasterId(claimId).stream().map(this::claimChargesInfoToDto).collect(Collectors.toList());
-            ubo4.setClaimchargesinfoDto(collect);
+            for (int i = 0; i < claim.getClaimchargesinfo().size(); i++) {
+
+                if (!isEmpty(claim.getClaimchargesinfo().get(i))) {
+
+                    RevCodeAndDescription = getCodeAndDescriptionForRevCode(claim.getClaimchargesinfo().get(i).getRevCode());
+                    claiminfomasterInstDtoUb04.getClaimchargesinfo().get(i).setRevCode(
+                            RevCodeAndDescription
+                    );
+
+                }
+
+            }
         } catch (Exception e) {
             throw new ResourceNotFoundException("ClaimChargesInfo", "ClaimInfoMasterId", claimId);
         }
-
-        try {
-            ClaimadditionalinfoDto claimadditionalinfoDto = claimadditionalinfoToDto(claimadditionalinfoRepository.findByClaiminfomasterId(claimId));
-            ubo4.setClaimadditionalinfoDto(claimadditionalinfoDto);
-        } catch (Exception e) {
-            throw new ResourceNotFoundException("ClaimAdditionalInfo", "ClaimInfoMasterId", claimId);
-        }
+//
+//        try {
+//            List<ClaiminfocodeconditioncodeDto_UB04> conditionCodes = claiminfocodeconditioncodeRepository.findByClaiminfomasterId(claimId).stream().map(this::claimInfocodeconditioncodeToDto).collect(Collectors.toList());
+//            ubo4.setClaiminfocodeconditioncodeDto(conditionCodes);
+//        } catch (Exception e) {
+//            throw new ResourceNotFoundException("Claiminfocodeconditioncode", "ClaimInfoMasterId", claimId);
+//        }
+//
+//        try {
+//            List<ClaiminfooccuranceDto_UB04> occuranceCodes = claiminfooccuranceRepository.findByClaiminfomasterId(claimId).stream().map(this::claiminfooccuranceToDto).collect(Collectors.toList());
+//            ubo4.setClaiminfooccurances(occuranceCodes);
+//        } catch (Exception e) {
+//            throw new ResourceNotFoundException("Claiminfocodeconditioncode", "ClaimInfoMasterId", claimId);
+//        }
+//
+//        try {
+//            List<ClaiminfocodeoccspanDto_UBO4> occuranceSpanCode = claiminfocodeoccspanRepository.findByClaiminfomasterId(claimId).stream().map(this::claiminfocodeoccspanToDto).collect(Collectors.toList());
+//            ubo4.setClaiminfocodeoccspan(occuranceSpanCode);
+//        } catch (Exception e) {
+//            throw new ResourceNotFoundException("Claiminfocodeoccspan", "ClaimInfoMasterId", claimId);
+//        }
+//
+//        try {
+//            List<ClaiminfocodevaluecodeDto_UB04> valueCodes = claiminfocodevaluecodeRepository.findByClaiminfomasterId(claimId).stream().map(this::claiminfovaluecodeToDto).collect(Collectors.toList());
+//            ubo4.setClaiminfocodevaluecode(valueCodes);
+//        } catch (Exception e) {
+//            throw new ResourceNotFoundException("Claiminfocodevaluecode", "ClaimInfoMasterId", claimId);
+//        }
+//
+//
+//        try {
+//            ClaimadditionalinfoDto claimadditionalinfoDto = claimadditionalinfoToDto(claimadditionalinfoRepository.findByClaiminfomasterId(claimId));
+//            ubo4.setClaimadditionalinfoDto(claimadditionalinfoDto);
+//        } catch (Exception e) {
+//            throw new ResourceNotFoundException("ClaimAdditionalInfo", "ClaimInfoMasterId", claimId);
+//        }
 
         return ubo4;
     }
@@ -1004,8 +1083,24 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
         }
     }
 
-    private ClaimchargesinfoDto claimChargesInfoToDto(Claimchargesinfo charge) {
-        return modelMapper.map(charge, ClaimchargesinfoDto.class);
+    private ClaimchargesinfoDto_UB04 claimChargesInfoToDto(Claimchargesinfo charge) {
+        return modelMapper.map(charge, ClaimchargesinfoDto_UB04.class);
+    }
+
+    private ClaiminfocodeconditioncodeDto_UB04 claimInfocodeconditioncodeToDto(Claiminfocodeconditioncode conditioncode) {
+        return modelMapper.map(conditioncode, ClaiminfocodeconditioncodeDto_UB04.class);
+    }
+
+    private ClaiminfooccuranceDto_UB04 claiminfooccuranceToDto(Claiminfooccurance occuranceCode) {
+        return modelMapper.map(occuranceCode, ClaiminfooccuranceDto_UB04.class);
+    }
+
+    private ClaiminfocodeoccspanDto_UBO4 claiminfocodeoccspanToDto(Claiminfocodeoccspan occuranceSpanCode) {
+        return modelMapper.map(occuranceSpanCode, ClaiminfocodeoccspanDto_UBO4.class);
+    }
+
+    private ClaiminfocodevaluecodeDto_UB04 claiminfovaluecodeToDto(Claiminfocodevaluecode valueCode) {
+        return modelMapper.map(valueCode, ClaiminfocodevaluecodeDto_UB04.class);
     }
 
     private void compareCPT(String existingAttr, String newAttr, Claiminfomaster claim) {
@@ -1043,6 +1138,10 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
     private ClaiminfomasterInstDto claimToDto(Claiminfomaster claim) {
         return modelMapper.map(claim, ClaiminfomasterInstDto.class);
+    }
+
+    private ClaiminfomasterInstDto_UB04 claimToDto_UB04(Claiminfomaster claim) {
+        return modelMapper.map(claim, ClaiminfomasterInstDto_UB04.class);
     }
 
 

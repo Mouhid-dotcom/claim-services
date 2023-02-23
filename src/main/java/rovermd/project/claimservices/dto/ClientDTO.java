@@ -27,4 +27,8 @@ public class ClientDTO {
     String remotedirectory;
     String activeIndex;
     String tablename;
+    String profNpi;
+    String profTaxId;
+
+    String profName;
 }

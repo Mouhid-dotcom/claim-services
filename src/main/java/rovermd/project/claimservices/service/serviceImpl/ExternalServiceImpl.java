@@ -10,6 +10,7 @@ import rovermd.project.claimservices.dto.*;
 import rovermd.project.claimservices.dto.cms1500.ClientDTO_CMS1500;
 import rovermd.project.claimservices.dto.cms1500.InsuranceDTO_CMS1500;
 import rovermd.project.claimservices.dto.cms1500.PatientDto_CMS1500;
+import rovermd.project.claimservices.dto.ub04.ClientDTO_UB04;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.service.ExternalService;
 
@@ -99,6 +100,14 @@ public class ExternalServiceImpl implements ExternalService {
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Client","ClientID", id)))
                 .bodyToMono(ClientDTO_CMS1500.class).block();
+    }
+    public ClientDTO_UB04 getClientDetailsById_UB04(long id) {
+        return webClient3.get()
+                .uri("facility/info/" + id)
+                .header("X-TenantID", "6")//String.valueOf(TenantContext.getCurrentTenant()))
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,response-> Mono.error(new ResourceNotFoundException("Client","ClientID", id)))
+                .bodyToMono(ClientDTO_UB04.class).block();
     }
 
     @Override
