@@ -4,7 +4,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rovermd.project.claimservices.dto.TOSDto;
-import rovermd.project.claimservices.entity.TOS;
+import rovermd.project.claimservices.entity.claimMaster.TOS;
 import rovermd.project.claimservices.repos.TOSRepository;
 import rovermd.project.claimservices.service.TOSService;
 

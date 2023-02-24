@@ -4,11 +4,12 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfocodeothdiag;
 
 import java.io.Serializable;
 
 /**
- * A DTO for the {@link rovermd.project.claimservices.entity.Claiminfocodeothdiag} entity
+ * A DTO for the {@link Claiminfocodeothdiag} entity
  */
 @Data
 @AllArgsConstructor

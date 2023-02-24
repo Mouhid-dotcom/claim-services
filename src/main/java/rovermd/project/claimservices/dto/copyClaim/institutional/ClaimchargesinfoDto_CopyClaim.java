@@ -3,11 +3,12 @@ package rovermd.project.claimservices.dto.copyClaim.institutional;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import rovermd.project.claimservices.dto.copyClaim.professional.ClaimchargesotherinfoDto_CopyClaim;
+import rovermd.project.claimservices.entity.claimMaster.Claimchargesinfo;
 
 import java.math.BigDecimal;
 
 /**
- * A DTO for the {@link rovermd.project.claimservices.entity.Claimchargesinfo} entity
+ * A DTO for the {@link Claimchargesinfo} entity
  */
 @Data
 public class ClaimchargesinfoDto_CopyClaim {

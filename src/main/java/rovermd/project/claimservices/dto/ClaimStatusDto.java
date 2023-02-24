@@ -3,7 +3,7 @@ package rovermd.project.claimservices.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import rovermd.project.claimservices.entity.ClaimStatus;
+import rovermd.project.claimservices.entity.claimMaster.ClaimStatus;
 
 import java.io.Serializable;
 

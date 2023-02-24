@@ -1,7 +1,7 @@
 package rovermd.project.claimservices.service;
 
 import rovermd.project.claimservices.dto.ClaimAudittrailDto;
-import rovermd.project.claimservices.entity.ClaimAudittrail;
+import rovermd.project.claimservices.entity.claimMaster.ClaimAudittrail;
 
 import java.util.List;
 

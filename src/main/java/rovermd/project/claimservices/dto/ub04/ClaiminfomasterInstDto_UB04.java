@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import rovermd.project.claimservices.dto.DoctorDTO;
 import rovermd.project.claimservices.dto.institutional.ClaimadditionalinfoDto;
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 
 import java.util.List;
 

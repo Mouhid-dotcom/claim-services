@@ -1,29 +1,33 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
+
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "claim_status_list")
-@AllArgsConstructor
+@Table(name = "toscodes")
 @NoArgsConstructor
 @Setter
 @Getter
-public class ClaimStatus {
+
+
+//Type Of Service
+public class TOS {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "descname")
-    private String Descname;
+    @Column(name = "Code")
+    private String code;
+
+    @Column(name = "Description")
+    private String description;
 
     @Column(name = "status")
     private Integer status;
-
 
 }

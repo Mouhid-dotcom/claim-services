@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -6,26 +6,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 
 @Entity
-@Table(name = "claiminfocodevaluecode")
+@Table(name = "claiminfocodereasvisit")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Claiminfocodevaluecode {
+public class Claiminfocodereasvisit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
     private Integer id;
 
-//    @Column(name = "ClaimInfoMasterId")
-//    private Integer claimInfoMasterId;
+//    @JsonBackReference
+//    @OneToOne(cascade=CascadeType.ALL)
+//    @JoinColumn(name="ClaimInfoMasterId", referencedColumnName="Id")
+//    Claiminfomaster claiminfomaster;
 //
-//    @Size(max = 200)
-//    @Column(name = "ClaimNumber", length = 200)
+//    @Size(max = 255)
+//    @Column(name = "ClaimNumber")
 //    private String claimNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,9 +40,8 @@ public class Claiminfocodevaluecode {
     @Column(name = "Code")
     private String code;
 
-    @Column(name = "Amount", precision = 20, scale = 2)
-    private BigDecimal amount;
-
+    @Column(name = "Status")
+    private Integer status;
 
     @Column(name = "CreatedDate")
     private Instant createdDate;
@@ -53,10 +53,6 @@ public class Claiminfocodevaluecode {
     @Size(max = 255)
     @Column(name = "CreatedIP")
     private String createdIP;
-
-
-    @Column(name = "Status")
-    private Integer status;
 
     @Column(name = "UpdatedAt")
     private Instant updatedAt;

@@ -2,7 +2,7 @@ package rovermd.project.claimservices.dto.institutional;
 
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 
 import java.util.List;
 

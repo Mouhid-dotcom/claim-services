@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import rovermd.project.claimservices.dto.professional.ClaimchargesotherinfoDto;
+import rovermd.project.claimservices.entity.claimMaster.Claimchargesinfo;
 
 import java.math.BigDecimal;
 
 /**
- * A DTO for the {@link rovermd.project.claimservices.entity.Claimchargesinfo} entity
+ * A DTO for the {@link Claimchargesinfo} entity
  */
 @Data
 public class ClaimchargesinfoDto_ViewSingleClaim {

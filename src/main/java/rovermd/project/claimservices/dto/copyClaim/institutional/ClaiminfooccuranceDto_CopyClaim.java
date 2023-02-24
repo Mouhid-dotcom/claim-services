@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import rovermd.project.claimservices.entity.Claiminfooccurance;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfooccurance;
 
 import java.io.Serializable;
 

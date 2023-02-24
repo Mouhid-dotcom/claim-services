@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -6,30 +6,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-
 @Entity
-@Table(name = "revenuecode")
+@Table(name = "claim_status_list")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-
-//RevenueCode
-public class RevenueCode {
+public class ClaimStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "RevCode")
-    private String revCode;
+    @Column(name = "descname")
+    private String Descname;
 
-    @Column(name = "RevDescription")
-    private String RevDescription;
+    @Column(name = "status")
+    private Integer status;
 
-    @Column(name = "Price")
-    private BigDecimal Price;
 
 }

@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 
 import jakarta.persistence.*;

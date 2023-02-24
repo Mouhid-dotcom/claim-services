@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -10,23 +10,21 @@ import java.time.Instant;
 import java.util.Date;
 
 @Entity
-@Table(name = "claiminfocodeextcauseinj")
+@Table(name = "claiminfooccurance")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Claiminfocodeextcauseinj {
+public class Claiminfooccurance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
     private Integer id;
 
-//    @JsonBackReference
-//    @OneToOne(cascade=CascadeType.ALL)
-//    @JoinColumn(name="ClaimInfoMasterId", referencedColumnName="Id")
-//    Claiminfomaster claiminfomaster;
+//    @Column(name = "ClaimInfoMasterId")
+//    private Integer claimInfoMasterId;
 //
-//    @Size(max = 255)
-//    @Column(name = "ClaimNumber")
+//    @Size(max = 200)
+//    @Column(name = "ClaimNumber", length = 200)
 //    private String claimNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,31 +33,37 @@ public class Claiminfocodeextcauseinj {
             @JoinColumn(name="ClaimNumber", referencedColumnName="ClaimNumber")
     })
     Claiminfomaster claiminfomaster;
-
     @Size(max = 255)
     @Column(name = "Code")
     private String code;
 
-    @Column(name = "Status")
-    private Integer status;
+    @Size(max = 200)
+    @Column(name = "Date", length = 200)
+    private String date;
+
+
+    @Column(name = "CreatedDate", length = 200)
+    private Instant createdDate;
 
     @Size(max = 255)
     @Column(name = "CreatedBy")
     private String createdBy;
 
-    @Column(name = "CreatedDate")
-    private Instant createdDate;
-
     @Size(max = 255)
     @Column(name = "CreatedIP")
     private String createdIP;
 
-    @Size(max = 255)
-    @Column(name = "UpdatedBy")
-    private String updatedBy;
+
+    @Column(name = "Status")
+    private Integer status;
+
 
     @Column(name = "UpdatedAt")
     private Instant updatedAt;
+
+    @Size(max = 255)
+    @Column(name = "UpdatedBy")
+    private String updatedBy;
 
     @PrePersist
     public void added() {
@@ -72,6 +76,5 @@ public class Claiminfocodeextcauseinj {
     public void Updated() {
         updatedAt = new Date().toInstant();
         updatedBy = "MOUHID_UPDATED";
-
     }
 }

@@ -12,7 +12,7 @@ import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterP
 import rovermd.project.claimservices.dto.institutional.*;
 import rovermd.project.claimservices.dto.ub04.*;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
-import rovermd.project.claimservices.entity.*;
+import rovermd.project.claimservices.entity.claimMaster.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.*;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
@@ -22,7 +22,6 @@ import rovermd.project.claimservices.service.ExternalService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 

@@ -4,9 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rovermd.project.claimservices.dto.ClaimAudittrailDto;
-import rovermd.project.claimservices.dto.institutional.ClaiminfomasterInstDto;
-import rovermd.project.claimservices.entity.ClaimAudittrail;
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.ClaimAudittrail;
 import rovermd.project.claimservices.repos.ClaimAudittrailRepository;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 

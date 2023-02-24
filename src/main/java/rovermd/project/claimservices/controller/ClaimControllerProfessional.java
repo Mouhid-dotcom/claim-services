@@ -10,7 +10,7 @@ import rovermd.project.claimservices.dto.SuccessMsg;
 import rovermd.project.claimservices.dto.copyClaim.institutional.ClaiminfomasterInstDto_CopyClaim;
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 import rovermd.project.claimservices.service.ClaimServiceEDI;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;

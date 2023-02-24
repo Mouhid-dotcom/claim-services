@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -10,23 +10,21 @@ import java.time.Instant;
 import java.util.Date;
 
 @Entity
-@Table(name = "claiminfocodeothdiag")
+@Table(name = "claiminfocodeothprocedure")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Claiminfocodeothdiag {
+public class Claiminfocodeothprocedure {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
     private Integer id;
 
-//    @JsonBackReference
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "ClaimInfoMasterId", referencedColumnName = "Id")
-//    Claiminfomaster claiminfomaster;
+//    @Column(name = "ClaimInfoMasterId")
+//    private Integer claimInfoMasterId;
 //
-//    @Size(max = 255)
-//    @Column(name = "ClaimNumber")
+//    @Size(max = 200)
+//    @Column(name = "ClaimNumber", length = 200)
 //    private String claimNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,12 +38,9 @@ public class Claiminfocodeothdiag {
     @Column(name = "Code")
     private String code;
 
-    @Size(max = 255)
-    @Column(name = "PQA")
-    private String pqa;
-
-    @Column(name = "Status")
-    private Integer status;
+    @Size(max = 200)
+    @Column(name = "Date", length = 200)
+    private String date;
 
     @Column(name = "CreatedDate")
     private Instant createdDate;
@@ -57,6 +52,10 @@ public class Claiminfocodeothdiag {
     @Size(max = 255)
     @Column(name = "CreatedIP")
     private String createdIP;
+
+
+    @Column(name = "Status")
+    private Integer status;
 
     @Column(name = "UpdatedAt")
     private Instant updatedAt;

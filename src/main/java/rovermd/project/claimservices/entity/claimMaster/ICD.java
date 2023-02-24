@@ -1,36 +1,42 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cptmaster")
+@Table(name = "icdmaster")
 @NoArgsConstructor
 @Setter
 @Getter
 
-//Current Procedural Terminology
-public class CPT {
+//International Classification of Diseases
+public class ICD {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "CPTCode")
-    private String CPTCode;
+    @Column(name = "ICD")
+    private String ICD;
 
-    @Column(name = "CPTDescription")
-    private String CPTDescription;
+    @Column(name = "Description")
+    private String Description;
 
-    @Column(name = "Price")
-    private BigDecimal Price;
+    @Column(name = "Status")
+    private Integer Status;
 
     @Column(name = "EffectiveDate")
     private LocalDateTime EffectiveDate;
+
+
+
+
+
+
 
 }

@@ -6,8 +6,8 @@ import jakarta.persistence.PostUpdate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
-import rovermd.project.claimservices.entity.ClaimAudittrail;
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.ClaimAudittrail;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.serviceImpl.ClaimAudittrailServiceImpl;
 

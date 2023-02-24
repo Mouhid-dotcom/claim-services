@@ -3,7 +3,7 @@ package rovermd.project.claimservices.dto.viewSingleClaim.institutional;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import rovermd.project.claimservices.dto.ScrubberRulesDto;
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 
 import java.util.List;
 

@@ -17,7 +17,7 @@ import rovermd.project.claimservices.dto.professional.ClaimchargesinfoDto;
 import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaimchargesinfoDto_ViewSingleClaim;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
-import rovermd.project.claimservices.entity.*;
+import rovermd.project.claimservices.entity.claimMaster.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.*;
 import rovermd.project.claimservices.service.ClaimAudittrailService;

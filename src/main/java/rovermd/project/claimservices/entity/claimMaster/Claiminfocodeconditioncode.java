@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.entity;
+package rovermd.project.claimservices.entity.claimMaster;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -10,11 +10,11 @@ import java.time.Instant;
 import java.util.Date;
 
 @Entity
-@Table(name = "claiminfooccurance")
+@Table(name = "claiminfocodeconditioncode")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Claiminfooccurance {
+public class Claiminfocodeconditioncode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id", nullable = false)
@@ -33,16 +33,13 @@ public class Claiminfooccurance {
             @JoinColumn(name="ClaimNumber", referencedColumnName="ClaimNumber")
     })
     Claiminfomaster claiminfomaster;
+
     @Size(max = 255)
     @Column(name = "Code")
     private String code;
 
-    @Size(max = 200)
-    @Column(name = "Date", length = 200)
-    private String date;
 
-
-    @Column(name = "CreatedDate", length = 200)
+    @Column(name = "CreatedDate")
     private Instant createdDate;
 
     @Size(max = 255)
@@ -54,9 +51,9 @@ public class Claiminfooccurance {
     private String createdIP;
 
 
+
     @Column(name = "Status")
     private Integer status;
-
 
     @Column(name = "UpdatedAt")
     private Instant updatedAt;
@@ -76,5 +73,6 @@ public class Claiminfooccurance {
     public void Updated() {
         updatedAt = new Date().toInstant();
         updatedBy = "MOUHID_UPDATED";
+
     }
 }

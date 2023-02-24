@@ -1,6 +1,6 @@
 package rovermd.project.claimservices.service;
 
-import rovermd.project.claimservices.entity.Claiminfomaster;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 
 import java.util.List;
 
