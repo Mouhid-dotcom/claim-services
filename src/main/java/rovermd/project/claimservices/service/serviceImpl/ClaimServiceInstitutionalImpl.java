@@ -22,6 +22,7 @@ import rovermd.project.claimservices.service.ExternalService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -944,7 +945,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                 DoctorDTO doctorDetail = externalService.getDoctorDetailsById(Long.parseLong(claim.getAttendingProvider()));
                 claiminfomasterInstDtoUb04.setAttendingProvider(doctorDetail);
             } catch (Exception e) {
-                throw new ResourceNotFoundException("Attending Provider","Id",Long.valueOf(claim.getAttendingProvider()));
+                throw new ResourceNotFoundException("Attending Provider","Id",Long.parseLong(claim.getAttendingProvider()));
             }
         }
 
@@ -953,7 +954,7 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                 DoctorDTO doctorDetail = externalService.getDoctorDetailsById(Long.parseLong(claim.getOperatingProvider()));
                 claiminfomasterInstDtoUb04.setOperatingProvider(doctorDetail);
             } catch (Exception e) {
-                throw new ResourceNotFoundException("Operating Provider","Id",Long.valueOf(claim.getOperatingProvider()));
+                throw new ResourceNotFoundException("Operating Provider","Id",Long.parseLong(claim.getOperatingProvider()));
             }
         }
 
