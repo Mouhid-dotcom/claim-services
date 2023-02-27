@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.repos;
+package rovermd.project.claimservices.repos.claimMaster;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import rovermd.project.claimservices.entity.claimMaster.Claiminfooccurance;

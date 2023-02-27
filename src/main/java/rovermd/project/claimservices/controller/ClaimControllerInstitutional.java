@@ -10,10 +10,10 @@ import rovermd.project.claimservices.dto.copyClaim.professional.ClaiminfomasterP
 import rovermd.project.claimservices.dto.institutional.ClaiminfomasterInstDto;
 import rovermd.project.claimservices.dto.ub04.UB04DTO;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
-import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 import rovermd.project.claimservices.service.ClaimServiceEDI;
 import rovermd.project.claimservices.service.ClaimServiceInstitutional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
+import rovermd.project.claimservices.entity.claimMaster.Claiminfomaster;
 
 import java.io.IOException;
 import java.text.ParseException;

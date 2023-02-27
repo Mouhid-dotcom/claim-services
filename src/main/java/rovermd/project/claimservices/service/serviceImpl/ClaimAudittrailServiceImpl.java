@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rovermd.project.claimservices.dto.ClaimAudittrailDto;
 import rovermd.project.claimservices.entity.claimMaster.ClaimAudittrail;
-import rovermd.project.claimservices.repos.ClaimAudittrailRepository;
+import rovermd.project.claimservices.repos.claimMaster.ClaimAudittrailRepository;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 
 import java.util.List;

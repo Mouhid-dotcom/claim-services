@@ -14,7 +14,7 @@ import rovermd.project.claimservices.dto.ub04.*;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.claimMaster.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
-import rovermd.project.claimservices.repos.*;
+import rovermd.project.claimservices.repos.claimMaster.*;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceInstitutional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
@@ -103,21 +103,13 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
         ClaiminfomasterInstDto_ViewSingleClaim claiminfomasterInstDto_viewSingleClaim = null;
 
-        Claiminfomaster claim = claimRepo.findById(claimId).orElse(new Claiminfomaster());
+        Claiminfomaster claim = claimRepo.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimId));
         System.out.println("HERE");
 
         List<ScrubberRulesDto> rulesList = new ArrayList<>();
 
-//        System.out.println(claim);
-        if (claim.getClaimchargesinfo() == null) {
-            System.out.println("IF");
 
-            String claimNumber = claimRepo.getNewClaimNumber();
-            claim.setClaimNumber("CI-" + claimNumber);
-            //need to have patient Name , MRN , acct-no , phNumber , email, address , dos ,  physicianIdx wrt to visit
-            // primary insurance name , primary memberId , primary grp Number , patients relationship to primary
-            // secondary insurance name , secondary memberId , secondary grp Number , patients relationship to secondary
-        } else {
+
             System.out.println("HERE");
 
             claim = filterChargesWrtStatus(claim);
@@ -275,7 +267,6 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
                     .clientID(String.valueOf(claim.getClientId()))
                     .action("OPENED")
                     .ruleText("CLAIM OPENED").build());
-        }
 
 
         return claiminfomasterInstDto_viewSingleClaim;

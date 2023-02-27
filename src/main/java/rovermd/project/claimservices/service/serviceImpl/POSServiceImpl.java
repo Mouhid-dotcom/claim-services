@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rovermd.project.claimservices.dto.POSDto;
 import rovermd.project.claimservices.entity.claimMaster.POS;
-import rovermd.project.claimservices.repos.POSRepository;
+import rovermd.project.claimservices.repos.claimMaster.POSRepository;
 import rovermd.project.claimservices.service.POSService;
 
 import java.util.List;

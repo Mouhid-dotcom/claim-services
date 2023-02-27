@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rovermd.project.claimservices.dto.ClaimStatusDto;
 import rovermd.project.claimservices.entity.claimMaster.ClaimStatus;
-import rovermd.project.claimservices.repos.ClaimStatusRepository;
+import rovermd.project.claimservices.repos.claimMaster.ClaimStatusRepository;
 import rovermd.project.claimservices.service.ClaimStatusService;
 
 import java.util.List;

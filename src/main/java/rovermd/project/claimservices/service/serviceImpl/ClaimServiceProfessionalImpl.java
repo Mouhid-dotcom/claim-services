@@ -19,7 +19,7 @@ import rovermd.project.claimservices.dto.viewSingleClaim.professional.Claimcharg
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.claimMaster.*;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
-import rovermd.project.claimservices.repos.*;
+import rovermd.project.claimservices.repos.claimMaster.*;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
@@ -83,16 +83,10 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
 
 
         ClaiminfomasterProfDto_ViewSingleClaim claiminfomasterProfDto_viewSingleClaim = null;
-        Claiminfomaster claim = claimRepo.findById(claimId).orElse(new Claiminfomaster());
+        Claiminfomaster claim = claimRepo.findById(claimId).orElseThrow(() -> new ResourceNotFoundException("Claim", "id", claimId));
         List<ScrubberRulesDto> rulesList = new ArrayList<>();
 
-        if (claim.getClaimchargesinfo() == null) {
-            String claimNumber = claimRepo.getNewClaimNumber();
-            claim.setClaimNumber("CP-" + claimNumber);
-            //need to have patient Name , MRN , acct-no , phNumber , email, address , dos ,  physicianIdx wrt to visit
-            // primary insurance name , primary memberId , primary grp Number , patients relationship to primary
-            // secondary insurance name , secondary memberId , secondary grp Number , patients relationship to secondary
-        } else {
+
 
             claim = filterChargesWrtStatus(claim);
 
@@ -174,7 +168,7 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
             }
 
 
-        }
+
 
         return claiminfomasterProfDto_viewSingleClaim;
     }
