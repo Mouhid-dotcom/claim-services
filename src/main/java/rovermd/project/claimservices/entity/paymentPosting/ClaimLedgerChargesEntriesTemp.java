@@ -8,6 +8,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "claim_ledger_charges_entries_temp")
@@ -32,7 +33,7 @@ public class ClaimLedgerChargesEntriesTemp {
     @Column(name="Amount")
     private BigDecimal amount;
     @Column(name="StartBalance")
-    private String startBalance;
+    private BigDecimal startBalance;
     @Column(name="Allowed")
     private BigDecimal allowed;
     @Column(name="Paid")
@@ -50,13 +51,13 @@ public class ClaimLedgerChargesEntriesTemp {
     @Column(name="Deductible")
     private BigDecimal deductible;
     @Column(name="Status")
-    private String status;
+    private Integer status;
     @Column(name="OtherCredits")
     private BigDecimal otherCredits;
     @Column(name="EndBalance")
     private BigDecimal endBalance;
     @Column(name="CreatedAt")
-    private OffsetDateTime createdAt;
+    private ZonedDateTime createdAt;
     @Column(name="CreatedBy")
     private String createdBy;
     @Column(name="UserIP")
@@ -70,9 +71,9 @@ public class ClaimLedgerChargesEntriesTemp {
     @Column(name="TransactionIdx")
     private String transactionIdx;
     @Column(name="SequestrationAmt")
-    private String sequestrationAmt;
+    private BigDecimal sequestrationAmt;
     @Column(name="UpdatedAt")
-    private OffsetDateTime updatedAt;
+    private ZonedDateTime updatedAt;
     @Column(name="UpdatedBy")
     private String updatedBy;
     @Column(name="Deleted")
@@ -89,4 +90,20 @@ public class ClaimLedgerChargesEntriesTemp {
     private Integer claimEraId;
     @Column(name="Claim_ERA_Checks_Id")
     private Integer claimEraChecksId;
+
+    private String action;
+    private String tcn;
+    private String claimControlNo;
+
+    @PrePersist
+    public void created() {
+        createdAt = ZonedDateTime.now();
+        createdBy = "MOUHID_CREATED";
+    }
+
+    @PreUpdate
+    public void Updated() {
+        updatedAt = ZonedDateTime.now();
+        updatedBy = "MOUHID_UPDATED";
+    }
 }

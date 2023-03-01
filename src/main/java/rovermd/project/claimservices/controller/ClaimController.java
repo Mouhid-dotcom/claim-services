@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import rovermd.project.claimservices.dto.ClaimAudittrailDto;
-import rovermd.project.claimservices.dto.ClaimInfoMaster_List;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/claims/")
@@ -23,12 +23,12 @@ public class ClaimController {
     private ClaimAudittrailService claimAudittrailService;
 
     @GetMapping(value = { "/", "/{keyWord}" })
-    public ResponseEntity<List<ClaimInfoMaster_List>> getAllClaims(@PathVariable(required = false) String keyWord) {
+    public ResponseEntity<List<Map<Object,Object>>> getAllClaims(@PathVariable(required = false) String keyWord) {
         return ResponseEntity.ok(this.claimService.getAllClaims(keyWord));
     }
 
     @GetMapping(value ={"/patRegID/{patRegID}/visitID/{visitID}","visitID/{visitID}/patRegID/{patRegID}/","/patRegID/{patRegID}","visitID/{visitID}"})
-    public ResponseEntity<List<ClaimInfoMaster_List>> getAllClaims(@PathVariable(required = false) Integer patRegID,@PathVariable(required = false) Integer visitID) {
+    public ResponseEntity<List<Map<Object,Object>>> getAllClaims(@PathVariable(required = false) Integer patRegID,@PathVariable(required = false) Integer visitID) {
         return ResponseEntity.ok(this.claimService.getAllClaimsByPatRegIDAndVisitId(patRegID,visitID));
     }
 

@@ -11,10 +11,13 @@ import java.math.BigDecimal;
 public class InsurancePaymentDto {
     private Long paymentBy;
     private Long paymentFrom;
-    private BigDecimal amount;
+    private String amount;
     private String recievedDate;
     private String checkNo;
     private String otherRefNo;
     private String paymentSource;
     private String cardType;
+    private String appliedAmount;
+    private String unAppliedAmount;
+    private Integer insuranceId;
 }

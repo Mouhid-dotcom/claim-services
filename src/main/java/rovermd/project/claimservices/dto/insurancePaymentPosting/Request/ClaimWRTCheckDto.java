@@ -13,11 +13,11 @@ public class ClaimWRTCheckDto {
     private String claimNo;
     private String pcn;
     private String dos;
-    private BigDecimal billed;
-    private BigDecimal allowed;
-    private BigDecimal paid;
-    private BigDecimal adjusted;
-    private BigDecimal unpaid;
-    private BigDecimal additionalActions;
-    private BigDecimal balance;
+    private String billed;
+    private String allowed;
+    private String paid;
+    private String adjusted;
+    private String unpaid;
+    private String additionalActions;
+    private String balance;
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
@@ -25,10 +26,10 @@ public class EobMaster {
     private Integer patientIdx;
 
     @Column(name="PaymentAmount")
-    private Double paymentAmount;
+    private String paymentAmount;
 
     @Column(name="ReceivedDate")
-    private LocalDate receivedDate;
+    private String receivedDate;
 
     @Column(name="CheckNumber")
     private String checkNumber;

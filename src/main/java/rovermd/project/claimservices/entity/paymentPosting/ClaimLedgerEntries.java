@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -20,7 +21,7 @@ public class ClaimLedgerEntries {
     private Integer id;
 
     @Column(name="TransactionIdx")
-    private String transactionIdx;
+    private Integer transactionIdx;
 
     @Column(name="ClaimIdx")
     private String claimIdx;
@@ -48,4 +49,16 @@ public class ClaimLedgerEntries {
 
     @Column(name="UpdatedAt")
     private ZonedDateTime updatedAt;
+
+    @PrePersist
+    public void created() {
+        createdAt = ZonedDateTime.now();
+        createdBy = "MOUHID_CREATED";
+    }
+
+    @PreUpdate
+    public void Updated() {
+        updatedAt = ZonedDateTime.now();
+        updatedBy = "MOUHID_UPDATED";
+    }
 }

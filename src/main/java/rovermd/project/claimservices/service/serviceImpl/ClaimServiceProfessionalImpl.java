@@ -27,6 +27,7 @@ import rovermd.project.claimservices.service.ExternalService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -438,52 +439,14 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
     }
 
     @Override
-    public List<ClaimInfoMaster_List> getAllClaims(String key) {
-
-        List<Object[]> claimList = key == null ? claimRepo.getListOfCreatedClaims() : claimRepo.getListOfCreatedClaimsFiltered(key);
-
-        List<ClaimInfoMaster_List> claimLList = new ArrayList<>();
-
-        for (Object[] objects : claimList) {
-            ClaimInfoMaster_List claimInfoMaster_List = new ClaimInfoMaster_List();
-
-            claimInfoMaster_List.setType(objects[0]);
-            claimInfoMaster_List.setClaimNo(objects[1]);
-            claimInfoMaster_List.setPatientName(objects[2]);
-            claimInfoMaster_List.setDateOfService(objects[3]);
-            claimInfoMaster_List.setTotalCharges(objects[4]);
-            claimInfoMaster_List.setBalance(objects[5]);
-            claimInfoMaster_List.setStatus(objects[6]);
-
-            claimLList.add(claimInfoMaster_List);
-
-        }
-        return claimLList;//.stream().map(this::claimToDto_List).collect(Collectors.toList());
+    public List<Map<Object,Object>> getAllClaims(String key) {
+        return key == null ? claimRepo.getListOfCreatedClaims() : claimRepo.getListOfCreatedClaimsFiltered(key);
     }
 
     @Override
-    public List<ClaimInfoMaster_List> getAllClaimsByPatRegIDAndVisitId(Integer patRegID, Integer visitID) {
-
-        List<Object[]> claimList = claimRepo.getListOfCreatedClaimsFilteredByPatRegIDORVisitID(patRegID, visitID);
-
-        List<ClaimInfoMaster_List> claimLList = new ArrayList<>();
-
-        for (Object[] objects : claimList) {
-            ClaimInfoMaster_List claimInfoMaster_List = new ClaimInfoMaster_List();
-
-            claimInfoMaster_List.setType(objects[0]);
-            claimInfoMaster_List.setClaimNo(objects[1]);
-            claimInfoMaster_List.setPatientName(objects[2]);
-            claimInfoMaster_List.setDateOfService(objects[3]);
-            claimInfoMaster_List.setTotalCharges(objects[4]);
-            claimInfoMaster_List.setBalance(objects[5]);
-            claimInfoMaster_List.setStatus(objects[6]);
-
-            claimLList.add(claimInfoMaster_List);
-
-        }
-        return claimLList;//.stream().map(this::claimToDto_List).collect(Collectors.toList());
-    }
+    public List<Map<Object,Object>> getAllClaimsByPatRegIDAndVisitId(Integer patRegID, Integer visitID) {
+        return claimRepo.getListOfCreatedClaimsFilteredByPatRegIDORVisitID(patRegID, visitID);
+     }
 
 
     @Transactional
@@ -1123,9 +1086,6 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
         return modelMapper.map(claimadditionalinfo, ClaimadditionalinfoDto_CMS1500.class);
     }
 
-    private ClaimInfoMaster_List claimToDto_List(Claiminfomaster claim) {
-        return modelMapper.map(claim, ClaimInfoMaster_List.class);
-    }
 
     private ClaiminfomasterProfDto_ViewSingleClaim claimToDto_ViewSingleClaim(Claiminfomaster claim) {
         return modelMapper.map(claim, ClaiminfomasterProfDto_ViewSingleClaim.class);
