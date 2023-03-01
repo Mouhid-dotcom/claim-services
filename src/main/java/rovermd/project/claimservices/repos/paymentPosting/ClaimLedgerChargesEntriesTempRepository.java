@@ -31,7 +31,7 @@ public interface ClaimLedgerChargesEntriesTempRepository extends JpaRepository<C
             " LEFT JOIN DoctorsList g on a.BillingProviders = g.Id " +
             " WHERE a.Id=:claimId and b.TransactionType='D' and b.Deleted is NULL AND TransactionIdx=:transactionId "
             , nativeQuery = true)
-    List<Map<Object,Object>> findAllByClaimIdxAndTransactionIdxTransactionTypeD(@Param("claimId")  Integer claimId, @Param("transactionId")  Integer transactionId);
+    List<Map<Object,Object>> findAllByClaimIdxAndTransactionIdxTransactionTypeD(@Param("claimId")  Integer claimId, @Param("transactionId")  String transactionId);
 
     @Query(value = "SELECT ClaimNumber,ClaimIdx,ChargeIdx,Charges,Amount,StartBalance " +
             ",Allowed ,Paid ,Remarks ,AdjReasons ," +
@@ -40,6 +40,19 @@ public interface ClaimLedgerChargesEntriesTempRepository extends JpaRepository<C
             , nativeQuery = true)
     List<Map<Object,Object>> findAllByClaimIdAndTransactionIdx(@Param("claimNumber")  String claimNumber, @Param("transactionId")  String transactionId);
 
+    @Query(value = "SELECT FORMAT(SUM(IFNULL(b.Allowed, '0')),2) as Allowed, " +
+            " FORMAT(SUM(IFNULL(b.Paid, '0')),2) as Paid, " +
+            " FORMAT(SUM(IFNULL(b.Adjusted, '0')),2) as Adjusted, " +
+            " FORMAT(SUM(IFNULL(b.Unpaid, '0')),2) as Unpaid, " +
+            " FORMAT(SUM(IFNULL(b.OtherCredits, '0')),2) as OtherCredits," +
+            " FORMAT(SUM(b.EndBalance),2) as EndBalance" +
+            " from claim_ledger_charges_entries_temp b" +
+            " WHERE b.TransactionIdx = :transactionId and b.ClaimNumber=:claimNumber AND TransactionType='D' "
+            , nativeQuery = true)
+    List<Map<Object,Object>> getClaimLedgerChargesEntriesDetails(@Param("claimNumber")  String claimNumber,@Param("transactionId")  String transactionId);
+
+    @Query(value = "SELECT DISTINCT(ClaimNumber)  from claim_ledger_charges_entries_temp where TransactionIdx=:transactionId", nativeQuery = true)
+    List<String> selectDistinctClaimNumbers(@Param("transactionId")  String transactionId);
 
     void deleteByClaimNumberAndTransactionIdx(String claimNumber,String TransactionIdx);
 

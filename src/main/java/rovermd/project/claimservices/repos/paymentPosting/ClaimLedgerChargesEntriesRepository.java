@@ -37,10 +37,10 @@ public interface ClaimLedgerChargesEntriesRepository extends JpaRepository<Claim
             " LEFT JOIN DoctorsList g on a.BillingProviders = g.Id " +
             " WHERE a.Id=:claimId and b.TransactionType='D' and b.Deleted is NULL AND TransactionIdx=:transactionId "
             , nativeQuery = true)
-    List<Map<Object,Object>> findAllByClaimIdxAndTransactionIdx(@Param("claimId")  Integer claimId,@Param("transactionId")  Integer transactionId);
+    List<Map<Object,Object>> findAllByClaimIdxAndTransactionIdx(@Param("claimId")  Integer claimId,@Param("transactionId")  String transactionId);
 
 
-    @Query(value = "SELECT DISTINCT(ClaimNumber)   from Claim_Ledger_Charges_entries where TransactionIdx=:transactionId", nativeQuery = true)
+    @Query(value = "SELECT DISTINCT(ClaimNumber)  from Claim_Ledger_Charges_entries where TransactionIdx=:transactionId", nativeQuery = true)
     List<String> selectDistinctClaimNumbers(@Param("transactionId")  Integer transactionId);
 
     @Query(value = "SELECT FORMAT(SUM(IFNULL(b.Allowed, '0')),2) as Allowed, " +
@@ -52,7 +52,7 @@ public interface ClaimLedgerChargesEntriesRepository extends JpaRepository<Claim
             " from Claim_Ledger_Charges_entries b" +
             " WHERE b.TransactionIdx = :transactionId and b.ClaimNumber=:claimNumber AND TransactionType='D' "
             , nativeQuery = true)
-    List<Map<Object,Object>> getClaimLedgerChargesEntriesDetails(@Param("claimNumber")  String claimNumber,@Param("transactionId")  Integer transactionId);
+    List<Map<Object,Object>> getClaimLedgerChargesEntriesDetails(@Param("claimNumber")  String claimNumber,@Param("transactionId")  String transactionId);
 
 
     @Modifying

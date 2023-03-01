@@ -7,5 +7,5 @@ import lombok.*;
 @AllArgsConstructor
 public class ClaimIdAndTransactionId {
     Integer claimId;
-    Integer transactionId;
+    String transactionId;
 }

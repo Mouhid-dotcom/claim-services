@@ -81,6 +81,10 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                     claimLedgerChargesEntriesTempRepository.save(claimLedgerChargesEntriesTemp);
                 });
 
+                return new APIResponse<>(200,
+                        "Success",
+                        getClaims_WRT_Check(new ClaimIdAndTransactionId(chargesWRTClaims.getCharges().get(0).getClaimIdx(), chargesWRTClaims.getCharges().get(0).getTransactionIdx()),1));
+
             } else if (2 == flag) {//updating payments in temp table
 
                 chargesWRTClaims.getCharges().forEach(x -> {
@@ -112,16 +116,21 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                     claimLedgerChargesEntriesTempRepository.save(claimLedgerChargesEntriesTemp);
                 });
 
+                return new APIResponse<>(200,
+                        "Success",
+                        getClaims_WRT_Check(new ClaimIdAndTransactionId(chargesWRTClaims.getCharges().get(0).getClaimIdx(), chargesWRTClaims.getCharges().get(0).getTransactionIdx()),1));
             } else {//updating existing payment in org table
-
-
+                //**************to be continue *******************
+                return new APIResponse<>(200,
+                        "Success",
+                        getClaims_WRT_Check(new ClaimIdAndTransactionId(chargesWRTClaims.getCharges().get(0).getClaimIdx(), chargesWRTClaims.getCharges().get(0).getTransactionIdx()),0));
             }
         } catch (Exception e) {
             //send or log e
             return new APIResponse<>(500, "something went wrong", null);
         }
 
-        return new APIResponse<>(200, "Success", null);//claimLedgerChargesEntriesTempRepository.findAllByClaimIdx(chargesWRTClaims.getCharges().get(0).getClaimIdx()));
+        //claimLedgerChargesEntriesTempRepository.findAllByClaimIdx(chargesWRTClaims.getCharges().get(0).getClaimIdx()));
     }
 
     @Transactional
@@ -261,12 +270,12 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
         InsurancePaymentDto insurancePaymentDto = new InsurancePaymentDto();
 
         List<ClaimWRTCheckDto> claimWRTCheckDtoList = new ArrayList<>();
-        List<String> claimNumbers = claimLedgerChargesEntriesRepository.selectDistinctClaimNumbers(claimIdAndTransactionId.getTransactionId());
-        Map<Object, Object> eobMasterDetails = eobMasterRepository.getEOBMasterDetails(claimIdAndTransactionId.getTransactionId());
+        List<String> claimNumbers = flag == 1 ? claimLedgerChargesEntriesTempRepository.selectDistinctClaimNumbers(claimIdAndTransactionId.getTransactionId()): claimLedgerChargesEntriesRepository.selectDistinctClaimNumbers(Integer.valueOf(claimIdAndTransactionId.getTransactionId()));
+        Map<Object, Object> eobMasterDetails = eobMasterRepository.getEOBMasterDetails(Integer.valueOf(claimIdAndTransactionId.getTransactionId()));
 
         claimNumbers.forEach(claimNumber -> {
             List<Map<Object, Object>> claimDetails = claiminfomasterRepository.getClaimDetails(claimNumber);
-            List<Map<Object, Object>> claimLedgerChargesEntriesDetails = claimLedgerChargesEntriesRepository.getClaimLedgerChargesEntriesDetails(claimNumber, claimIdAndTransactionId.getTransactionId());
+            List<Map<Object, Object>> claimLedgerChargesEntriesDetails = flag == 1 ? claimLedgerChargesEntriesTempRepository.getClaimLedgerChargesEntriesDetails(claimNumber, claimIdAndTransactionId.getTransactionId()) : claimLedgerChargesEntriesRepository.getClaimLedgerChargesEntriesDetails(claimNumber, claimIdAndTransactionId.getTransactionId());
 
             for (int i = 0; i < claimDetails.size(); i++) {
                 ClaimWRTCheckDto claimWRTCheckDto = new ClaimWRTCheckDto();
@@ -296,6 +305,8 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
 
         claimsWRTCheckDto.setInsurancePayment(insurancePaymentDto);
         claimsWRTCheckDto.setClaims(claimWRTCheckDtoList);
+
+
         return claimsWRTCheckDto;
     }
 
