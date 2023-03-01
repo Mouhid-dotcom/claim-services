@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.dto.insurancePaymentPosting.Request;
+package rovermd.project.claimservices.dto.insurancePaymentPosting;
 
 
 import lombok.*;
@@ -20,4 +20,8 @@ public class InsurancePaymentDto {
     private String appliedAmount;
     private String unAppliedAmount;
     private Integer insuranceId;
+
+    private String insuranceName;
+
+
 }

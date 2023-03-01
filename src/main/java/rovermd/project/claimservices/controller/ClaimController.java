@@ -27,6 +27,11 @@ public class ClaimController {
         return ResponseEntity.ok(this.claimService.getAllClaims(keyWord));
     }
 
+    @GetMapping( "insuranceIdx/{insuranceID}")
+    public ResponseEntity<List<Map<Object,Object>>> getAllClaimsByInsurance(@PathVariable(required = false) Integer insuranceID) {
+        return ResponseEntity.ok(this.claimService.getAllClaimsByInsurance(insuranceID));
+    }
+
     @GetMapping(value ={"/patRegID/{patRegID}/visitID/{visitID}","visitID/{visitID}/patRegID/{patRegID}/","/patRegID/{patRegID}","visitID/{visitID}"})
     public ResponseEntity<List<Map<Object,Object>>> getAllClaims(@PathVariable(required = false) Integer patRegID,@PathVariable(required = false) Integer visitID) {
         return ResponseEntity.ok(this.claimService.getAllClaimsByPatRegIDAndVisitId(patRegID,visitID));

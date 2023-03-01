@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rovermd.project.claimservices.dto.APIResponse;
-import rovermd.project.claimservices.dto.insurancePaymentPosting.Request.*;
+import rovermd.project.claimservices.dto.insurancePaymentPosting.*;
 import rovermd.project.claimservices.entity.claimMaster.ClaimAudittrail;
 import rovermd.project.claimservices.entity.paymentPosting.ClaimLedgerChargesEntries;
 import rovermd.project.claimservices.entity.paymentPosting.ClaimLedgerChargesEntriesTemp;
@@ -17,8 +17,8 @@ import rovermd.project.claimservices.repos.paymentPosting.ClaimLedgerEntriesRepo
 import rovermd.project.claimservices.repos.paymentPosting.EobMasterRepository;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimPaymentPostingService;
+import rovermd.project.claimservices.service.ExternalService;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +42,9 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
 
     @Autowired
     private ClaimAudittrailService claimAudittrailService;
+
+    @Autowired
+    private ExternalService externalService;
 
     @Transactional
     @Override
@@ -242,13 +245,13 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                 claimWRTCheckDto.setClaimNo(claimNumber);
                 claimWRTCheckDto.setPcn(String.valueOf(claimDetails.get(i).get("PCN")));
                 claimWRTCheckDto.setDos(String.valueOf(claimDetails.get(i).get("DOS")));
-                claimWRTCheckDto.setBilled(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Billed")));
+                claimWRTCheckDto.setBilled(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Amount")));
                 claimWRTCheckDto.setAllowed(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Allowed")));
                 claimWRTCheckDto.setPaid(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Paid")));
                 claimWRTCheckDto.setAdjusted(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Adjusted")));
                 claimWRTCheckDto.setUnpaid(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Unpaid")));
                 claimWRTCheckDto.setAdditionalActions(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("AdditionalActions")));
-                claimWRTCheckDto.setBalance(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("Balance")));
+                claimWRTCheckDto.setBalance(String.valueOf(claimLedgerChargesEntriesDetails.get(i).get("EndBalance")));
                 claimWRTCheckDtoList.add(claimWRTCheckDto);
             }
         });
@@ -258,6 +261,8 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
         insurancePaymentDto.setAppliedAmount(String.valueOf(eobMasterDetails.get("AppliedAmount")));
         insurancePaymentDto.setUnAppliedAmount(String.valueOf(eobMasterDetails.get("UnappliedAmount")));
         insurancePaymentDto.setOtherRefNo(String.valueOf(eobMasterDetails.get("OtherRefrenceNo")));
+        insurancePaymentDto.setInsuranceId((Integer) eobMasterDetails.get("InsuranceIdx"));
+        insurancePaymentDto.setInsuranceName(externalService.getInsuranceDetailsById(String.valueOf(eobMasterDetails.get("InsuranceIdx"))).getPayerName());
 
         claimsWRTCheckDto.setInsurancePayment(insurancePaymentDto);
         claimsWRTCheckDto.setClaims(claimWRTCheckDtoList);

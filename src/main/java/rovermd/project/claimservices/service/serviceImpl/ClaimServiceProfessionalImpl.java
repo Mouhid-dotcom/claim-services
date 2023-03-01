@@ -444,6 +444,11 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
     }
 
     @Override
+    public List<Map<Object,Object>> getAllClaimsByInsurance(Integer key) {
+        return claimRepo.getListOfCreatedClaimsByInsuranceIdx(key);
+    }
+
+    @Override
     public List<Map<Object,Object>> getAllClaimsByPatRegIDAndVisitId(Integer patRegID, Integer visitID) {
         return claimRepo.getListOfCreatedClaimsFilteredByPatRegIDORVisitID(patRegID, visitID);
      }

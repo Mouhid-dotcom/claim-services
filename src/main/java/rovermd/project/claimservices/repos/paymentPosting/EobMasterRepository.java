@@ -12,7 +12,7 @@ public interface EobMasterRepository extends JpaRepository<EobMaster, Integer> {
 
     @Query(value = "SELECT DATE_FORMAT(ReceivedDate,'%Y-%m-%d') as ReceivedDate  , IFNULL(PaymentAmount,'0.00') as PaymentAmount , " +
             "IFNULL(AppliedAmount,'0.00') as AppliedAmount, IFNULL(UnappliedAmount, IFNULL(PaymentAmount,'0.00')) as UnappliedAmount, IFNULL(OtherRefrenceNo,'') as OtherRefrenceNo" +
-            ",Id, IFNULL(Claim_ERA_Id,'-1') " +
+            ",Id, IFNULL(Claim_ERA_Id,'-1') , InsuranceIdx  " +
             " from EOB_Master" +
             " WHERE Id=:transactionId"
             , nativeQuery = true)

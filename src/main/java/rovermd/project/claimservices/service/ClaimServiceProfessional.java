@@ -10,6 +10,7 @@ import java.util.Map;
 
 public interface ClaimServiceProfessional {
     List<Map<Object, Object>> getAllClaims(String key);
+    List<Map<Object, Object>> getAllClaimsByInsurance(Integer insuranceIdx);
 
     List<Map<Object, Object>> getAllClaimsByPatRegIDAndVisitId(Integer patRegID, Integer visitID);
 

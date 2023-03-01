@@ -1,15 +1,12 @@
 package rovermd.project.claimservices.controller;
 
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rovermd.project.claimservices.dto.APIResponse;
-import rovermd.project.claimservices.dto.insurancePaymentPosting.Request.ChargesWRTClaimDto;
-import rovermd.project.claimservices.dto.insurancePaymentPosting.Request.ClaimIdAndTransactionId;
-import rovermd.project.claimservices.dto.insurancePaymentPosting.Request.ClaimsWRTCheckDto;
+import rovermd.project.claimservices.dto.insurancePaymentPosting.ChargesWRTClaimDto;
+import rovermd.project.claimservices.dto.insurancePaymentPosting.ClaimIdAndTransactionId;
+import rovermd.project.claimservices.dto.insurancePaymentPosting.ClaimsWRTCheckDto;
 import rovermd.project.claimservices.service.ClaimPaymentPostingService;
 
 @RestController

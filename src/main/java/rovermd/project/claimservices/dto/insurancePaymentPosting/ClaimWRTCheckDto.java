@@ -1,4 +1,4 @@
-package rovermd.project.claimservices.dto.insurancePaymentPosting.Request;
+package rovermd.project.claimservices.dto.insurancePaymentPosting;
 
 import lombok.*;
 

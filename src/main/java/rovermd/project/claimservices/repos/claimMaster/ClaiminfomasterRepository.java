@@ -35,6 +35,19 @@ public interface ClaiminfomasterRepository extends JpaRepository<Claiminfomaster
             , nativeQuery = true)
     List<Map<Object,Object>> getListOfCreatedClaims();
 
+
+    @Query(value = "SELECT CASE WHEN  IFNULL(ClaimType,'') = 1 THEN 'Institutional' ELSE 'Professional' END as type " +
+            " ,IFNULL(a.ClaimNumber,'') as claimNo,IFNULL(PatientName,'') as patientName,DATE_FORMAT(DOS,'%m/%d/%Y') as dos,FORMAT(IFNULL(TotalCharges,''),2) as totalCharges," +
+            " FORMAT(IFNULL(Balance,IFNULL(TotalCharges,'')),2) as balance, " +
+            " IFNULL(b.descname,'') as status ,a.Id as id " +
+            " FROM claimInfoMaster a"+
+            " LEFT JOIN claimChargesInfo c ON a.id=c.ClaimInfoMasterId " +
+            " LEFT JOIN claim_Status_list b on c.ChargesStatus = b.id" +
+            " WHERE a.PriInsuranceNameId = :insuranceIdx " +
+            " GROUP BY c.ClaimInfoMasterId ORDER BY COALESCE(a.ViewDate,a.CreatedDate) DESC "
+            , nativeQuery = true)
+    List<Map<Object,Object>> getListOfCreatedClaimsByInsuranceIdx(@Param("insuranceIdx") Integer insuranceIdx);
+
     @Query(value = "SELECT CASE WHEN  IFNULL(ClaimType,'') = 1 THEN 'Institutional' ELSE 'Professional' END as type " +
             " ,IFNULL(a.ClaimNumber,'') as claimNo,IFNULL(PatientName,'') as patientName,DATE_FORMAT(DOS,'%m/%d/%Y') as dos,FORMAT(IFNULL(TotalCharges,''),2) as totalCharges," +
             " FORMAT(IFNULL(Balance,IFNULL(TotalCharges,'')),2) as balance, " +
