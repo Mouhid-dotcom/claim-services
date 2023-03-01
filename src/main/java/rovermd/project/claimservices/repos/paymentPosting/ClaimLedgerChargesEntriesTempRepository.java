@@ -10,18 +10,28 @@ import java.util.Map;
 
 public interface ClaimLedgerChargesEntriesTempRepository extends JpaRepository<ClaimLedgerChargesEntriesTemp, Integer> {
 
-    @Query(value = "SELECT IFNULL(DATE_FORMAT(a.DOS,'%m/%d/%Y') ,'') , IFNULL(b.Charges,''), REPLACE(FORMAT(IFNULL(b.Amount,'0.00'),2),',','') " +
-            " , REPLACE(FORMAT(IFNULL(b.StartBalance,IFNULL(b.Amount,'0.00')),2),',',''), IFNULL(b.Allowed,'0.00'), REPLACE(FORMAT(IFNULL(b.Paid,'0.00'),2),',',''), IFNULL(b.Remarks,''), IFNULL(b.AdjReasons,''), REPLACE(FORMAT(IFNULL(b.Adjusted,'0.00'),2),',','') " +
-            " , IFNULL(b.UnpaidReasons,''), REPLACE(FORMAT(IFNULL(b.Unpaid,'0.00'),2),',',''), REPLACE(FORMAT(IFNULL(b.Deductible,'0.00'),2),',',''), IFNULL(e.descname,''), REPLACE(FORMAT(IFNULL(b.OtherCredits,'0.00'),2),',',''), REPLACE(FORMAT(IFNULL(b.EndBalance,IFNULL(b.Amount,'0.00')),2),',','')" +
-            " , IFNULL(LTRIM(rtrim(REPLACE(f.PayerName,'Servicing States','') )),'') , CONCAT(IFNULL(g.DoctorsLastName,''),', ', IFNULL(g.DoctorsFirstName,'')), IFNULL(e.Id,'4'), IFNULL(b.ChargeIdx,''), IFNULL(b.ClaimIdx,''),IFNULL(ClaimType,''),REPLACE(FORMAT(IFNULL(b.SequestrationAmt,'0.00'),2),',','') " +
+    @Query(value = "SELECT IFNULL(DATE_FORMAT(a.DOS,'%m/%d/%Y') ,'') as dos, " +
+            "  IFNULL(b.Charges,'') as 'procedure', REPLACE(FORMAT(IFNULL(b.Amount,'0.00'),2),',','') as amount " +
+            " , REPLACE(FORMAT(IFNULL(b.StartBalance,IFNULL(b.Amount,'0.00')),2),',','') as startBalance," +
+            " IFNULL(b.Allowed,'0.00') as allowed, REPLACE(FORMAT(IFNULL(b.Paid,'0.00'),2),',','') as paid," +
+            " IFNULL(b.Remarks,'') as remarks, IFNULL(b.AdjReasons,'') as adjustedReason," +
+            " REPLACE(FORMAT(IFNULL(b.Adjusted,'0.00'),2),',','') as adjusted " +
+            " , IFNULL(b.UnpaidReasons,'') as unpaidReason, REPLACE(FORMAT(IFNULL(b.Unpaid,'0.00'),2),',','') as unpaid," +
+            " REPLACE(FORMAT(IFNULL(b.Deductible,'0.00'),2),',','') as deductible, IFNULL(e.descname,'') as status," +
+            " REPLACE(FORMAT(IFNULL(b.OtherCredits,'0.00'),2),',','') as otherCredits," +
+            " REPLACE(FORMAT(IFNULL(b.EndBalance,IFNULL(b.Amount,'0.00')),2),',','') as endBalance" +
+            " , IFNULL(LTRIM(rtrim(REPLACE(f.PayerName,'Servicing States','') )),'') as insuranceName ," +
+            " CONCAT(IFNULL(g.DoctorsLastName,''),', ', IFNULL(g.DoctorsFirstName,'')) as renderingProvider," +
+            " IFNULL(e.Id,'4') as statusId, IFNULL(b.ChargeIdx,'') as chargeId, IFNULL(b.ClaimIdx,'') as claimId," +
+            " IFNULL(ClaimType,'') as claimType ,REPLACE(FORMAT(IFNULL(b.SequestrationAmt,'0.00'),2),',','') as sequestrationAmount,b.Id as tempTableIdx " +
             " from ClaimInfoMaster a " +
-            " INNER JOIN Claim_Ledger_Charges_entries b ON a.ClaimNumber=b.ClaimNumber " +
+            " INNER JOIN claim_ledger_charges_entries_temp b ON a.ClaimNumber=b.ClaimNumber " +
             " LEFT JOIN claim_Status_list e on b.Status = e.Id " +
             " LEFT JOIN ProfessionalPayers f on a.PriInsuranceNameId = f.Id " +
             " LEFT JOIN DoctorsList g on a.BillingProviders = g.Id " +
-            " WHERE a.Id=:claimId and b.TransactionType='Cr' and b.Deleted is NULL "
+            " WHERE a.Id=:claimId and b.TransactionType='D' and b.Deleted is NULL AND TransactionIdx=:transactionId "
             , nativeQuery = true)
-    List<Object[]> findAllByClaimId(@Param("claimId")  Integer claimId);
+    List<Map<Object,Object>> findAllByClaimIdxAndTransactionIdxTransactionTypeD(@Param("claimId")  Integer claimId, @Param("transactionId")  Integer transactionId);
 
     @Query(value = "SELECT ClaimNumber,ClaimIdx,ChargeIdx,Charges,Amount,StartBalance " +
             ",Allowed ,Paid ,Remarks ,AdjReasons ," +

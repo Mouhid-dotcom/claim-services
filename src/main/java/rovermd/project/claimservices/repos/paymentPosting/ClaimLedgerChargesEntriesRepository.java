@@ -23,7 +23,7 @@ public interface ClaimLedgerChargesEntriesRepository extends JpaRepository<Claim
             " LEFT JOIN DoctorsList g on a.BillingProviders = g.Id " +
             " WHERE a.Id=:claimId and b.TransactionType='Cr' and b.Deleted is NULL "
             , nativeQuery = true)
-    List<Map<Object,Object>> findAllByClaimIdx(@Param("claimId")  Integer claimId);
+    List<Map<Object,Object>> findAllByClaimIdxTransactionTypeCr(@Param("claimId")  Integer claimId);
 
     @Query(value = "SELECT IFNULL(DATE_FORMAT(a.DOS,'%m/%d/%Y') ,'') as dos, " +
             "  IFNULL(b.Charges,'') as 'procedure', REPLACE(FORMAT(IFNULL(b.Amount,'0.00'),2),',','') as amount " +

@@ -81,14 +81,41 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                     claimLedgerChargesEntriesTempRepository.save(claimLedgerChargesEntriesTemp);
                 });
 
+            } else if (2 == flag) {//updating payments in temp table
+
+                chargesWRTClaims.getCharges().forEach(x -> {
+                    ClaimLedgerChargesEntriesTemp claimLedgerChargesEntriesTemp = new ClaimLedgerChargesEntriesTemp();
+                    claimLedgerChargesEntriesTemp.setCharges(x.getCharges());
+                    claimLedgerChargesEntriesTemp.setClaimNumber(x.getClaimNo());
+                    claimLedgerChargesEntriesTemp.setTransactionType("D");
+                    claimLedgerChargesEntriesTemp.setClaimIdx(x.getClaimIdx());
+                    claimLedgerChargesEntriesTemp.setChargeIdx(x.getChargeIdx());
+                    claimLedgerChargesEntriesTemp.setCharges(x.getCharges());
+                    claimLedgerChargesEntriesTemp.setAmount(x.getAmount());
+                    claimLedgerChargesEntriesTemp.setStartBalance(x.getStartBalance());
+                    claimLedgerChargesEntriesTemp.setAllowed(x.getAllowed());
+                    claimLedgerChargesEntriesTemp.setPaid(x.getPaid());
+                    claimLedgerChargesEntriesTemp.setRemarks(x.getRemarks());
+                    claimLedgerChargesEntriesTemp.setAdjReasons(x.getAdjReasons());
+                    claimLedgerChargesEntriesTemp.setAdjusted(x.getAdjusted());
+                    claimLedgerChargesEntriesTemp.setUnpaidReasons(x.getUnpaidReasons());
+                    claimLedgerChargesEntriesTemp.setUnpaid(x.getUnpaid());
+                    claimLedgerChargesEntriesTemp.setDeductible(x.getDeductible());
+                    claimLedgerChargesEntriesTemp.setStatus(x.getStatus());
+                    claimLedgerChargesEntriesTemp.setOtherCredits(x.getOtherCredits());
+                    claimLedgerChargesEntriesTemp.setEndBalance(x.getEndBalance());
+                    claimLedgerChargesEntriesTemp.setTransactionIdx(x.getTransactionIdx());
+                    claimLedgerChargesEntriesTemp.setSequestrationAmt(x.getSequestrationAmt());
+                    claimLedgerChargesEntriesTemp.setAction(chargesWRTClaims.getAction());
+                    claimLedgerChargesEntriesTemp.setTcn(chargesWRTClaims.getTcn());
+                    claimLedgerChargesEntriesTemp.setClaimControlNo(chargesWRTClaims.getClaimControlNo());
+                    claimLedgerChargesEntriesTempRepository.save(claimLedgerChargesEntriesTemp);
+                });
+
+            } else {//updating existing payment in org table
+
+
             }
-//        else if(3==flag){//updating new payments in temp table
-//
-//
-//        }else{//updating existing payment in org table
-//
-//
-//        }
         } catch (Exception e) {
             //send or log e
             return new APIResponse<>(500, "something went wrong", null);
@@ -130,8 +157,8 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                 List<Map<Object, Object>> allByClaimIdAndTransactionId = claimLedgerChargesEntriesTempRepository.findAllByClaimIdAndTransactionIdx(claimsWRTCheckDto.getClaims().get(i).getClaimNo(),
                         claimsWRTCheckDto.getInsurancePayment().getCheckNo());
 
-                for(Map<Object, Object> x : allByClaimIdAndTransactionId){
-                    System.out.println("ChargeIdx -> "+x.get("ChargeIdx"));
+                for (Map<Object, Object> x : allByClaimIdAndTransactionId) {
+                    System.out.println("ChargeIdx -> " + x.get("ChargeIdx"));
                     ClaimLedgerChargesEntries claimLedgerChargesEntries = new ClaimLedgerChargesEntries();
 
                     claimLedgerChargesEntries.setClaimNumber(String.valueOf(x.get("ClaimNumber")));
@@ -166,22 +193,22 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                         ClaimType[0] = 1;
 
 
-                    claimLedgerChargesEntriesRepository.updateClaim_Ledger_Charges_entries(String.valueOf(x.get("EndBalance")),String.valueOf(save.getId()),
-                            String.valueOf(x.get("ChargeIdx")),String.valueOf(x.get("ClaimIdx")));
+                    claimLedgerChargesEntriesRepository.updateClaim_Ledger_Charges_entries(String.valueOf(x.get("EndBalance")), String.valueOf(save.getId()),
+                            String.valueOf(x.get("ChargeIdx")), String.valueOf(x.get("ClaimIdx")));
 
                     insertClaimAuditTrails(String.valueOf(x.get("ClaimNumber")),
                             "Payment Posted Against " + x.get("Charges") + " in Cheque No : " + save.getCheckNumber(),
-                            "PAYMENT POSTED", ClaimType[0],"MOUHID",39,"MOUHID_IP");
+                            "PAYMENT POSTED", ClaimType[0], "MOUHID", 39, "MOUHID_IP");
 
-                    Map<Object,Object> sumOfPaidAndAdjusted = claimLedgerChargesEntriesRepository.getSumOfPaidAndAdjusted(String.valueOf(x.get("ClaimNumber")), String.valueOf(x.get("ChargeIdx")));
+                    Map<Object, Object> sumOfPaidAndAdjusted = claimLedgerChargesEntriesRepository.getSumOfPaidAndAdjusted(String.valueOf(x.get("ClaimNumber")), String.valueOf(x.get("ChargeIdx")));
 //
-                    TOTAL_wrt_Claim_Paid +=  (Double) sumOfPaidAndAdjusted.get("Paid");
-                    TOTAL_wrt_Claim_Adjusted +=  (Double) sumOfPaidAndAdjusted.get("Adjusted");
+                    TOTAL_wrt_Claim_Paid += (Double) sumOfPaidAndAdjusted.get("Paid");
+                    TOTAL_wrt_Claim_Adjusted += (Double) sumOfPaidAndAdjusted.get("Adjusted");
 //
 
                     insertClaimAuditTrails(String.valueOf(x.get("ClaimNumber")),
                             "Charge Status Updated Against " + x.get("Charges") + " in Cheque No : " + save.getCheckNumber(),
-                            "CHARGE STATUS UPDATED FROM PAYMENT POSTING", ClaimType[0],"MOUHID",39,"MOUHID_IP");
+                            "CHARGE STATUS UPDATED FROM PAYMENT POSTING", ClaimType[0], "MOUHID", 39, "MOUHID_IP");
 
                 }
 
@@ -194,7 +221,7 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
                 TOTAL_wrt_Claim_Balance = TOTAL_Charges_wrt_Claim - (TOTAL_wrt_Claim_Paid + TOTAL_wrt_Claim_Adjusted);
 
                 //Updating Claim's Total Paid , Adjusted , Balance
-                claiminfomasterRepository.updatePaidAndAdjustedAndBalance(TOTAL_wrt_Claim_Paid,TOTAL_wrt_Claim_Adjusted,TOTAL_wrt_Claim_Balance,claimsWRTCheckDto.getClaims().get(i).getClaimNo());
+                claiminfomasterRepository.updatePaidAndAdjustedAndBalance(TOTAL_wrt_Claim_Paid, TOTAL_wrt_Claim_Adjusted, TOTAL_wrt_Claim_Balance, claimsWRTCheckDto.getClaims().get(i).getClaimNo());
 
                 TOTAL_wrt_Claim_Paid = 0.0;
                 TOTAL_wrt_Claim_Adjusted = 0.0;
@@ -203,7 +230,7 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
             }
 
             for (int i = 0; i < claimsWRTCheckDto.getClaims().size(); i++) {
-                claimLedgerChargesEntriesTempRepository.deleteByClaimNumberAndTransactionIdx(claimsWRTCheckDto.getClaims().get(i).getClaimNo(),save.getCheckNumber());
+                claimLedgerChargesEntriesTempRepository.deleteByClaimNumberAndTransactionIdx(claimsWRTCheckDto.getClaims().get(i).getClaimNo(), save.getCheckNumber());
             }
 
         } catch (Exception e) {
@@ -217,9 +244,12 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
 
     @Override
     public Object getCharges_WRT_Claim(ClaimIdAndTransactionId claimIdAndTransactionId, Integer flag) {
-        if (1 == flag)
-            return claimLedgerChargesEntriesRepository.findAllByClaimIdx(claimIdAndTransactionId.getClaimId());
-        else if (2 == flag)
+        if (1 == flag)//For New Payment Posting
+            return claimLedgerChargesEntriesRepository.findAllByClaimIdxTransactionTypeCr(claimIdAndTransactionId.getClaimId());
+        else if (2 == flag)//For payments in temp table
+            return claimLedgerChargesEntriesTempRepository.findAllByClaimIdxAndTransactionIdxTransactionTypeD(claimIdAndTransactionId.getClaimId(),
+                    claimIdAndTransactionId.getTransactionId());
+        else if (3 == flag)//For payments in org table
             return claimLedgerChargesEntriesRepository.findAllByClaimIdxAndTransactionIdx(claimIdAndTransactionId.getClaimId(),
                     claimIdAndTransactionId.getTransactionId());
         return null;
