@@ -11,5 +11,6 @@ public class ChargesWRTClaimDto {
     private String action;
     private String tcn;
     private String claimControlNo;
+    private String checkNo;
     List<ChargeWRTClaimDto> charges;
 }

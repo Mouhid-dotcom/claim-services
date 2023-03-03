@@ -5,16 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 @Entity
-@Table(name = "claim_ledger_charges_entries")
+@Table(name = "claim_ledger_charges_entries_history")
 @NoArgsConstructor
 @Setter
 @Getter
-public class ClaimLedgerChargesEntries {
+public class ClaimLedgerChargesEntriesHistory {
     @Id
     @Column(name = "Id" , nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,39 +22,39 @@ public class ClaimLedgerChargesEntries {
     @Column(name="TransactionType")
     private String transactionType;
     @Column(name="ClaimIdx")
-    private Integer claimIdx;
+    private String claimIdx;
     @Column(name="ChargeIdx")
-    private Integer chargeIdx;
+    private String chargeIdx;
     @Column(name="Charges")
     private String charges;
     @Column(name="Amount")
-    private BigDecimal amount;
+    private String amount;
     @Column(name="StartBalance")
-    private BigDecimal startBalance;
+    private String startBalance;
     @Column(name="Allowed")
-    private BigDecimal allowed;
+    private String allowed;
     @Column(name="Paid")
-    private BigDecimal paid;
+    private String paid;
     @Column(name="Remarks")
     private String remarks;
     @Column(name="AdjReasons")
     private String adjReasons;
     @Column(name="Adjusted")
-    private BigDecimal adjusted;
+    private String adjusted;
     @Column(name="SequestrationAmt")
-    private BigDecimal sequestrationAmt;
+    private String sequestrationAmt;
     @Column(name="UnpaidReasons")
     private String unpaidReasons;
     @Column(name="Unpaid")
-    private BigDecimal unpaid;
+    private String unpaid;
     @Column(name="Deductible")
-    private BigDecimal deductible;
+    private String deductible;
     @Column(name="Status")
-    private Integer status;
+    private String status;
     @Column(name="OtherCredits")
-    private BigDecimal otherCredits;
+    private String otherCredits;
     @Column(name="EndBalance")
-    private BigDecimal endBalance;
+    private String endBalance;
     @Column(name="CreatedAt")
     private ZonedDateTime createdAt;
     @Column(name="CreatedBy")
@@ -76,7 +74,7 @@ public class ClaimLedgerChargesEntries {
     @Column(name="UpdatedBy")
     private String updatedBy;
     @Column(name="Deleted")
-    private Integer deleted;
+    private String deleted;
 
     private String action;
     private String tcn;

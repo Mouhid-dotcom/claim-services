@@ -27,4 +27,5 @@ public class ChargeWRTClaimDto {
     private Integer chargeIdx;
     private Integer claimIdx;
     private String transactionIdx;
+    private Integer ledgerIdx;
 }

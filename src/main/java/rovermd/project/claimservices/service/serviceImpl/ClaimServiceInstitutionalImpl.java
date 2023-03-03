@@ -13,8 +13,10 @@ import rovermd.project.claimservices.dto.institutional.*;
 import rovermd.project.claimservices.dto.ub04.*;
 import rovermd.project.claimservices.dto.viewSingleClaim.institutional.ClaiminfomasterInstDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.claimMaster.*;
+import rovermd.project.claimservices.entity.paymentPosting.ClaimLedgerChargesEntries;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.claimMaster.*;
+import rovermd.project.claimservices.repos.paymentPosting.ClaimLedgerChargesEntriesRepository;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceInstitutional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
@@ -32,6 +34,9 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
 
     @Autowired
     private ClaiminfomasterRepository claimRepo;
+
+    @Autowired
+    private ClaimLedgerChargesEntriesRepository claimLedgerChargesEntriesRepository;
 
     @Autowired
     private ClaimchargesinfoRepository claimchargesinfoRepository;
@@ -675,9 +680,26 @@ public class ClaimServiceInstitutionalImpl implements ClaimServiceInstitutional 
             claim.setTotalCharges(totalChargeswrtClaim);
 
             save = claimRepo.save(claim);
+
+            for(Claimchargesinfo x:save.getClaimchargesinfo()){
+                ClaimLedgerChargesEntries claimLedgerChargesEntries = new ClaimLedgerChargesEntries();
+                claimLedgerChargesEntries.setClaimNumber(save.getClaimNumber());
+                claimLedgerChargesEntries.setClaimIdx(save.getId());
+                claimLedgerChargesEntries.setCharges(x.getHCPCSProcedure());
+                claimLedgerChargesEntries.setAmount(x.getAmount());
+                claimLedgerChargesEntries.setChargeIdx(x.getId());
+                claimLedgerChargesEntries.setTransactionType("Cr");
+                claimLedgerChargesEntries.setStatus(x.getStatus());
+                if (x.getStatus() != 1)
+                    claimLedgerChargesEntries.setDeleted(1);
+                claimLedgerChargesEntriesRepository.save(claimLedgerChargesEntries);
+            }
+
             insertClaimAuditTrails(claim,
                     "CLAIM SAVED",
                     "CREATED");
+
+
         } catch (NumberFormatException e) {
             throw new RuntimeException(e);
         }

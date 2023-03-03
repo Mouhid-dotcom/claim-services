@@ -6,20 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name = "EOB_Master")
+@Table(name = "EOB_Master_History")
 @NoArgsConstructor
 @Setter
 @Getter
-public class EobMaster {
+public class EobMasterHistory {
 
     @Id
     @Column(name = "Id" , nullable = false, updatable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name="PatientIdx")
@@ -47,7 +44,7 @@ public class EobMaster {
     private Integer status;
 
     @Column(name="CopayDOS")
-    private ZonedDateTime copayDos;
+    private String copayDos;
 
     @Column(name="CardType")
     private String cardType;
@@ -80,10 +77,10 @@ public class EobMaster {
     private Integer isCreditAccount;
 
     @Column(name="AppliedAmount")
-    private BigDecimal appliedAmount;
+    private String appliedAmount;
 
     @Column(name="UnappliedAmount")
-    private BigDecimal unappliedAmount;
+    private String unappliedAmount;
 
     @Column(name="UpdatedAt")
     private ZonedDateTime updatedAt;
@@ -99,7 +96,6 @@ public class EobMaster {
 
     @Column(name="Claim_ERA_Checks_Id")
     private Integer claimEraChecksId;
-
 
     @PrePersist
     public void created() {

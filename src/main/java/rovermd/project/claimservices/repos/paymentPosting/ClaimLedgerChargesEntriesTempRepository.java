@@ -23,7 +23,7 @@ public interface ClaimLedgerChargesEntriesTempRepository extends JpaRepository<C
             " , IFNULL(LTRIM(rtrim(REPLACE(f.PayerName,'Servicing States','') )),'') as insuranceName ," +
             " CONCAT(IFNULL(g.DoctorsLastName,''),', ', IFNULL(g.DoctorsFirstName,'')) as renderingProvider," +
             " IFNULL(e.Id,'4') as statusId, IFNULL(b.ChargeIdx,'') as chargeId, IFNULL(b.ClaimIdx,'') as claimId," +
-            " IFNULL(ClaimType,'') as claimType ,REPLACE(FORMAT(IFNULL(b.SequestrationAmt,'0.00'),2),',','') as sequestrationAmount,b.Id as tempTableIdx " +
+            " IFNULL(ClaimType,'') as claimType ,REPLACE(FORMAT(IFNULL(b.SequestrationAmt,'0.00'),2),',','') as sequestrationAmount,b.Id as ledgerIdx " +
             " from ClaimInfoMaster a " +
             " INNER JOIN claim_ledger_charges_entries_temp b ON a.ClaimNumber=b.ClaimNumber " +
             " LEFT JOIN claim_Status_list e on b.Status = e.Id " +
@@ -38,7 +38,7 @@ public interface ClaimLedgerChargesEntriesTempRepository extends JpaRepository<C
             "Adjusted ,SequestrationAmt ,UnpaidReasons ,Unpaid ,Deductible ,Status ,OtherCredits ,EndBalance, CreatedAt,CreatedBy,UserIP,TransactionIdx,TransactionType, Payment ,Adjustment ,Balance " +
             " FROM Claim_Ledger_Charges_entries_TEMP WHERE ClaimNumber=:claimNumber AND TransactionIdx=:transactionId"
             , nativeQuery = true)
-    List<Map<Object,Object>> findAllByClaimIdAndTransactionIdx(@Param("claimNumber")  String claimNumber, @Param("transactionId")  String transactionId);
+    List<Map<String,String>> findAllByClaimIdAndTransactionIdx(@Param("claimNumber")  String claimNumber, @Param("transactionId")  String transactionId);
 
     @Query(value = "SELECT FORMAT(SUM(IFNULL(b.Allowed, '0')),2) as Allowed, " +
             " FORMAT(SUM(IFNULL(b.Paid, '0')),2) as Paid, " +

@@ -17,11 +17,8 @@ public class InsurancePaymentDto {
     private String otherRefNo;
     private String paymentSource;
     private String cardType;
-    private String appliedAmount;
-    private String unAppliedAmount;
+    private BigDecimal appliedAmount;
+    private BigDecimal unAppliedAmount;
     private Integer insuranceId;
-
     private String insuranceName;
-
-
 }

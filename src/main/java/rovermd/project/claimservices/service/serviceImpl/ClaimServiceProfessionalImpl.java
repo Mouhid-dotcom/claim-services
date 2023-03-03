@@ -18,8 +18,10 @@ import rovermd.project.claimservices.dto.professional.ClaiminfomasterProfDto;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaimchargesinfoDto_ViewSingleClaim;
 import rovermd.project.claimservices.dto.viewSingleClaim.professional.ClaiminfomasterProfDto_ViewSingleClaim;
 import rovermd.project.claimservices.entity.claimMaster.*;
+import rovermd.project.claimservices.entity.paymentPosting.ClaimLedgerChargesEntries;
 import rovermd.project.claimservices.exception.ResourceNotFoundException;
 import rovermd.project.claimservices.repos.claimMaster.*;
+import rovermd.project.claimservices.repos.paymentPosting.ClaimLedgerChargesEntriesRepository;
 import rovermd.project.claimservices.service.ClaimAudittrailService;
 import rovermd.project.claimservices.service.ClaimServiceProfessional;
 import rovermd.project.claimservices.service.ClaimServiceSrubber;
@@ -72,6 +74,9 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
     private ClaimAudittrailRepository claimAudittrailRepository;
     @Autowired
     private ClaimadditionalinfoRepository claimadditionalinfoRepository;
+
+    @Autowired
+    private ClaimLedgerChargesEntriesRepository claimLedgerChargesEntriesRepository;
 
     @Override
     public ClaiminfomasterProfDto_ViewSingleClaim getClaimById(Integer claimId) {
@@ -625,6 +630,8 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
 
                 if (claimchargesinfoDto.getStatus() == 1)
                     totalChargeswrtClaim += claimchargesinfoDto.getAmount().doubleValue();
+
+
             }
             claim.setTotalCharges(totalChargeswrtClaim);
 
@@ -636,8 +643,23 @@ public class ClaimServiceProfessionalImpl implements ClaimServiceProfessional {
                 claim.setScrubbed(1);//passed by scrubber
             }
 
-
             save = claimRepo.save(claim);
+
+            for(Claimchargesinfo x:save.getClaimchargesinfo()){
+                ClaimLedgerChargesEntries claimLedgerChargesEntries = new ClaimLedgerChargesEntries();
+                claimLedgerChargesEntries.setClaimNumber(save.getClaimNumber());
+                claimLedgerChargesEntries.setClaimIdx(save.getId());
+                claimLedgerChargesEntries.setCharges(x.getHCPCSProcedure());
+                claimLedgerChargesEntries.setAmount(x.getAmount());
+                claimLedgerChargesEntries.setChargeIdx(x.getId());
+                claimLedgerChargesEntries.setTransactionType("Cr");
+                claimLedgerChargesEntries.setStatus(x.getStatus());
+                if (x.getStatus() != 1)
+                    claimLedgerChargesEntries.setDeleted(1);
+                claimLedgerChargesEntriesRepository.save(claimLedgerChargesEntries);
+            }
+
+
             insertClaimAuditTrails(claim,
                     "CLAIM SAVED",
                     "CREATED");
