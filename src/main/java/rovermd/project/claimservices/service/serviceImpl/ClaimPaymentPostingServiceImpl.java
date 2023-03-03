@@ -62,7 +62,7 @@ public class ClaimPaymentPostingServiceImpl implements ClaimPaymentPostingServic
         Double TOTAL_wrt_Claim_Balance = 0.0;
 
         try {
-            if (1 == flag) {//inserting new payments temp table
+            if (1 == flag) {//inserting & updating new payments temp table
                 chargesWRTClaims.getCharges().forEach(x -> {
                     ClaimLedgerChargesEntriesTemp claimLedgerChargesEntriesTemp = new ClaimLedgerChargesEntriesTemp();
                     if (!isEmpty(x.getLedgerIdx())) {
